@@ -73,7 +73,7 @@ void checkEvent(const struct timeval curTimeval)
       commSend(*pFd, data, &datalen, NULL);
       DEBUGINFO("send <%d> bytes~", datalen);
    }
-   sleep(1);
+   sleep(2);
    
    return;
 }

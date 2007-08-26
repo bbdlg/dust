@@ -851,6 +851,32 @@ int commSend(int fd, const char* sendBuf, int* sendLen, void* to)
             }
             break;
 #endif
+#ifdef UDP_MODE
+         case UDPSERVER:
+            if(ON == gCommFlag.udpServerTrace) {
+               (*(UdpInfoObject**)MpMapLinkInfo(pos))->recordObj.sendPacket++;
+               (*(UdpInfoObject**)MpMapLinkInfo(pos))->recordObj.sendByte += *sendLen;
+            }
+            if(ON == gCommFlag.udpServerPrint) {
+               DEBUGINFO("send len is %d", *sendLen);
+               hexdump(sendBuf, *sendLen, "sent msg :");
+            }
+            break;
+         case UDPCLIENT:
+            if(ON == gCommFlag.udpClientTrace) {
+               (*(UdpInfoObject**)MpMapLinkInfo(pos))->recordObj.sendPacket++;
+               (*(UdpInfoObject**)MpMapLinkInfo(pos))->recordObj.sendByte += *sendLen;
+            }
+            if(ON == gCommFlag.udpClientPrint) {
+               DEBUGINFO("send len is %d", *sendLen);
+               hexdump(sendBuf, *sendLen, "sent msg :");
+            }
+            break;
+         case UDP_MULTICAST_SERVER:
+         case UDP_MULTICAST_CLIENT:
+            DEBUGINFO("multicast udp server or client!");
+            break;
+#endif
       }
 
    }
@@ -863,25 +889,34 @@ int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd)
    int _sumOfMap = *(int*)gLinkMap;
    int _curMapStart = sizeof(int);
    while(_sumOfMap--) {
-      DEBUGINFO("%d, logicName<%s><%s>", *(int*)MtypeOfMap(_curMapStart), *(char**)MpLogicName(_curMapStart), logicName);
+      int flag = 0;
+      if(0) {}
 #ifdef TCP_CLIENT_MODE
-      if((TCPCLIENT == *(int*)MtypeOfMap(_curMapStart)) && (CONNECTED == (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state) && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+      else if((TCPCLIENT == *(int*)MtypeOfMap(_curMapStart)) && (CONNECTED == (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state) && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+         flag = 1;
+      }
 #endif
 #ifdef TCP_SERVER_MODE
-      if((TCPSERVER == *(int*)MtypeOfMap(_curMapStart)) && (CONNECTED == (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->state) && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+      else if((TCPSERVER == *(int*)MtypeOfMap(_curMapStart)) && (CONNECTED == (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->state) && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+         flag = 2;
+      }
 #endif
 #ifdef UDP_MODE
-      if(((UDPCLIENT == *(int*)MtypeOfMap(_curMapStart)) 
-               || (UDPSERVER == *(int*)MtypeOfMap(_curMapStart)) 
+      else if((   (UDPCLIENT            == *(int*)MtypeOfMap(_curMapStart)) 
+               || (UDPSERVER            == *(int*)MtypeOfMap(_curMapStart)) 
                || (UDP_MULTICAST_SERVER == *(int*)MtypeOfMap(_curMapStart)) 
                || (UDP_MULTICAST_CLIENT == *(int*)MtypeOfMap(_curMapStart)))
-          && (CONNECTED == (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->state) 
+          && (CONNECTED == (*(UdpInfoObject**)MpMapLinkInfo(_curMapStart))->state) 
           && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+         flag = 3;
+      }
 #endif
+
+      if(flag) {
          *sumFd = *(int*)MsumOfFd(_curMapStart);
          *pFd = (int*)MbasePoolOfFd(_curMapStart);
 #ifdef TCP_SERVER_MODE
-         if(TCP_SERVER_MODE == *(int*)MtypeOfMap(_curMapStart)) {
+         if(TCPSERVER == *(int*)MtypeOfMap(_curMapStart)) {
             (*sumFd)--;
             (*pFd)++;
          }
@@ -1146,7 +1181,7 @@ int commProcess(struct timeval curTimeval)
 void lgCmdFuncTrace(int argc, char* argv[])
 {
    if(1 == argc) {
-      term("Usage: trace [all|tcp|udp] [logicName]\n");
+      term("Usage: trace [all|tcp|udp|logicName]\n");
       return;
    }
 
@@ -1154,12 +1189,13 @@ void lgCmdFuncTrace(int argc, char* argv[])
    if(0 == strcmp(argv[1], "all"))        flag = 1;
    if(0 == strcmp(argv[1], "tcp"))        flag = 2;
    if(0 == strcmp(argv[1], "udp"))        flag = 3;
-   const char* logicName = argv[2];
+   const char* logicName = (-1==flag) ? argv[1] : argv[2];
    int has_record= 0;
    int _sumOfMap = *(int*)gLinkMap;
    int _curMapStart = sizeof(int);
    while(_sumOfMap--) {
       int type = *(int*)MtypeOfMap(_curMapStart);
+      DEBUGINFO("type is %d", type);
       if(0) {}
 #ifdef TCP_CLIENT_MODE
       else if(TCPCLIENT == type) {
@@ -1169,13 +1205,17 @@ void lgCmdFuncTrace(int argc, char* argv[])
                   *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
             has_record = 1;
          }
-         else {
-            if((2 == flag) && logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
-               RecordObj obj = (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
-               term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
-                     *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
-               has_record = 1;
-            }
+         else if(2 == flag) {
+            RecordObj obj = (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
+         }
+         else if(logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+            RecordObj obj = (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
          }
       }
 #endif
@@ -1187,31 +1227,40 @@ void lgCmdFuncTrace(int argc, char* argv[])
                   *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
             has_record = 1;
          }
-         else {
-            if((2 == flag) && logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
-               RecordObj obj = (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
-               term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
-                     *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
-               has_record = 1;
-            }
+         else if(2 == flag) {
+            RecordObj obj = (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
+         }
+         else if(logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+            RecordObj obj = (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
          }
       }
 #endif
 #ifdef UDP_MODE
       else if((UDPSERVER == type) || (UDPCLIENT == type) || (UDP_MULTICAST_SERVER == type) || (UDP_MULTICAST_CLIENT == type)) {
+         DEBUGINFO("------------ flag = %d, logic<%s>-<%s>", flag, logicName, *(char**)MpLogicName(_curMapStart));
          if(1 == flag) {
             RecordObj obj = (*(UdpInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
             term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
                   *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
             has_record = 1;
          }
-         else {
-            if((3 == flag) && logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
-               RecordObj obj = (*(UdpInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
-               term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
-                     *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
-               has_record = 1;
-            }
+         else if(3 == flag) {
+            RecordObj obj = (*(UdpInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
+         }
+         else if(logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+            RecordObj obj = (*(UdpInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
          }
       }
 #endif
