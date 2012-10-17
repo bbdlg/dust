@@ -24,4 +24,14 @@ alone without any modification.
 
   NOTE: Before do testing things, you must download ThrowTheSwitch-Unity-8661f3f.tar.gz from https://github.com/ThrowTheSwitch/Unity/downloads, 
 put it into dust directory, and change name to 'unity'.
+  In dust project, the file tree like this:
+              [root@localhost dust]# tree -L 1 ../dust
+               ../dust
+               |-- README.md
+               |-- commModule
+               |-- errModule
+               |-- lgModule
+               |-- logModule
+               `-- unity
+
 

@@ -10,3 +10,10 @@
 *.lai
 *.la
 *.a
+
+# Tar.gz
+*.tar.gz
+
+# test tools - unity
+unity
+
