@@ -22,5 +22,6 @@ alone without any modification.
               [root@localhost testLogModule]# ./start_test.sh test_logModule.c
   Now, you will see all tests instance of logModule have passed.
 
-  NOTE: before do testing things, you must download ThrowTheSwitch-Unity-8661f3f.tar.gz from https://github.com/ThrowTheSwitch/Unity/downloads, 
-put it into dust directory, and change name to unity.
+  NOTE: Before do testing things, you must download ThrowTheSwitch-Unity-8661f3f.tar.gz from https://github.com/ThrowTheSwitch/Unity/downloads, 
+put it into dust directory, and change name to 'unity'.
+
