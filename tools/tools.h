@@ -17,6 +17,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+/* Error in this module */
+enum ToolsError {
+   TOOLS_SUCCESS = 0,
+   TOOLS_INVALID_PARA,
+   TOOLS_CANNOT_FIND_VALUES,
+};
+
 /* hide and resume print on the screen */
 #define HIDE_STDOUT  do { \
    int fd = open("/dev/null",  O_APPEND); \
@@ -41,6 +48,13 @@
  *** # other config content
  *
  */
-extern int readValueFromConf(const char* filePath, const char* key, char* res, int size);
+extern int readValueFromConf(const char* filePath, const char* key, char* res, int* size);
+
+/* extend to readValueFromConf
+ * return how many times 'field' appears in filePath, if times=0;
+ * return TOOLS_CANNOT_FIND_VALUES, it means there's no values found;
+ * return TOOLS_SUCCESS, it means success...
+ */
+extern int readValueFromConf_ext(const char* filePath, const int times, const char* field, const char* key, char* res, int* size);
 
 #endif
