@@ -2,7 +2,7 @@
 #define _COMMMDULE_H_
 
 #include <stdio.h>
-#include "tools.h"
+#include "../tools/tools.h"
 
 /*
  * Error in this module
@@ -59,6 +59,13 @@ extern int commSend(int fd, const char* sendBuf, int sendLen);
  * */
 extern int getAliveLink(const char* logicName, int* sumFd, int* pFd);
 
+#ifdef TCP_CLIENT_MODE
+typedef TcpClientInfoObject {
+   char* destIp;
+   int   destPort;
+   int   localPort;
+};
+#endif
 
 
 #endif
