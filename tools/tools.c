@@ -74,6 +74,9 @@ int readValueFromConf_ext(const char* filePath, const int times, const char* fie
    sprintf(cmd, "./getValueByFieldAndKey.sh %s %d %s %s", filePath, times, field, key);
    int ret = getResultFromSystemCall(cmd, res, size);
    *size = strlen(res);
+   if(0 == times) {
+      return atoi(res);
+   }
    //fflush(stdout);
    //printf("cmd is <%s>       ret of getResultFromSystemCall is %d, res <%s>, size <%d>\n", cmd, ret, res, *size);
    //fflush(stdout);
@@ -89,13 +92,13 @@ int main(void)
 {
    char res[100] = {0};
    int size = 100;
-   readValueFromConf_ext("./te.conf", 0, "TCP", "test2", res, &size);
+   readValueFromConf_ext("../commModule/commModule.conf", 0, "TcpClient", "LogicName", res, &size);
    int i = atoi(res);
    printf("i = %d\n", i);
    while(i--) {
       size = 100;
       memset(res, 0, size);
-      readValueFromConf_ext("./te.conf", i+1, "TCP", "test2", res, &size);
+      readValueFromConf_ext("../commModule/commModule.conf", i+1, "TcpClient", "LogicName", res, &size);
       printf("%d <%d-%s>\n", i+1, size, res);
    }
    return 0;

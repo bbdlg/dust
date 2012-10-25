@@ -9,7 +9,7 @@
  * */
 enum CommError {
    COMM_SUCCESS = 0,
-}
+};
 
 /*
  * type of logicname
@@ -59,12 +59,14 @@ extern int commSend(int fd, const char* sendBuf, int sendLen);
  * */
 extern int getAliveLink(const char* logicName, int* sumFd, int* pFd);
 
+extern int getSizeOfGLinkMap(void);
+
 #ifdef TCP_CLIENT_MODE
-typedef TcpClientInfoObject {
+typedef struct {
    char* destIp;
    int   destPort;
    int   localPort;
-};
+}TcpClientInfoObject;
 #endif
 
 
