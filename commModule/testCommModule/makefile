@@ -29,7 +29,9 @@ comm:
 	@cd .. && make all && cd testCommModule
 
 default:
+	@echo "start test ..."
 	@$(TARGET1)
+	@echo "finish test ..."
 
 ${TARGET1}:${OBJS1} 
 	@${C_COMPILER} -o ${TARGET1} ${SYMBOLS} ${OBJS1} ../commModule.o ../tools.o ${OBJS_COMM} ${INC_DIRS} ${LIB} 

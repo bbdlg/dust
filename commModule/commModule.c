@@ -5,10 +5,9 @@ const char* defaultConfigFilePath = "./commModule.conf";
 
 int getSizeOfGLinkMap(void)
 {
-   int sumOfMap = *(int*)gLinkMap;
+   int sumOfMap = *((int*)gLinkMap);
    int ret = sizeof(int);
    while(sumOfMap--) {
-      printf("_____________________________\n");
       fflush(stdout);
       ret += sizeof(char*);
       ret += sizeof(int);
@@ -21,14 +20,14 @@ int getSizeOfGLinkMap(void)
 }
 
 #define MAX_LEN_VALUE 100
-#define MsumOfMap     (int*)gLinkMap
-#define MbaseMap(sizeOfGLinkMap)     (gLinkMap + sizeOfGLinkMap)
-#define MpLogicName(x)   (char*)MbaseMap(x)
-#define MtypeOfMap(x)    ((int*)(MpLogicName(x) + sizeof(MpLogicName(x))))
-#define MpMapLinkInfo(x) ((int*)(MtypeOfMap(x) + sizeof(MtypeOfMap(x))))
-#define MsumOfFd(x)      ((int*)(MpMapLinkInfo(x) + sizeof(MpMapLinkInfo(x))))
-#define MbasePoolOfFd(x) ((int*)(MsumOfFd(x) + sizeof(MsumOfFd(x))))
-#define MinitPoolOfFd(x) memset(MbasePoolOfFd(x), (int)-1, sizeof(int)*(*MsumOfFd(x)))
+#define MsumOfMap                   gLinkMap
+#define MbaseMap(sizeOfGLinkMap)    (MsumOfMap + sizeOfGLinkMap)
+#define MpLogicName(x)              MbaseMap(x)
+#define MtypeOfMap(x)               (MpLogicName(x) + sizeof(char*))
+#define MpMapLinkInfo(x)            (MtypeOfMap(x) + sizeof(int))
+#define MsumOfFd(x)                 (MpMapLinkInfo(x) + sizeof(int*))
+#define MbasePoolOfFd(x)            (MsumOfFd(x) + sizeof(int))
+#define MinitPoolOfFd(x)            memset(MbasePoolOfFd(x), -1, (*(int*)MsumOfFd(x) * sizeof(int)))
 
 #ifdef TCP_CLIENT_MODE
 int initTcpClientInfo(const char* configFilePath)
@@ -36,9 +35,9 @@ int initTcpClientInfo(const char* configFilePath)
    int sizeRes = MAX_LEN_VALUE;
    char res[MAX_LEN_VALUE] = {0};
    int sumTcpClient = readValueFromConf_ext(configFilePath, 0, "TcpClient", "anything", res, &sizeRes);
-   printf("sumTcpClient is <%d>, config file path is <%s>\n", sumTcpClient, configFilePath);
+   //printf("sumTcpClient is <%d>, config file path is <%s>\n", sumTcpClient, configFilePath);
    while(sumTcpClient--) {
-      char* logicName = (char*)malloc(sizeRes+1);
+      char* logicName = NULL;
       TcpClientInfoObject* tcpClientInfoObject = (TcpClientInfoObject*)malloc(sizeof(TcpClientInfoObject));
 
       //read value from config file
@@ -48,6 +47,7 @@ int initTcpClientInfo(const char* configFilePath)
          printf("error: can't get LogicName in %d lines!\n", __LINE__);
          continue;
       }
+      logicName = (char*)malloc(sizeRes+1);
       memcpy(logicName, res, sizeRes);
       logicName[sizeRes] = 0;
 
@@ -58,6 +58,7 @@ int initTcpClientInfo(const char* configFilePath)
          continue;
       }
       tcpClientInfoObject->destIp = (char*)malloc(sizeRes+1);
+      //DEBUG("IP p=%p,<%s>len<%d>", tcpClientInfoObject->destIp, res, sizeRes);
       memcpy(tcpClientInfoObject->destIp, res, sizeRes);
       tcpClientInfoObject->destIp[sizeRes] = 0;
 
@@ -78,18 +79,22 @@ int initTcpClientInfo(const char* configFilePath)
       tcpClientInfoObject->localPort = atoi(res);
       
       //fill gLinkMap
-      realloc(gLinkMap, (getSizeOfGLinkMap() + (1+1+1+1+1)*4));
-      *MsumOfMap++;
+      gLinkMap = realloc(gLinkMap, (getSizeOfGLinkMap() + 4*sizeof(int) + 1*sizeof(int)));
       int x = getSizeOfGLinkMap();
-      *MpLogicName(x)   = logicName;
-      *MtypeOfMap(x)    = TCPCLIENT;
-      *MpMapLinkInfo(x) = tcpClientInfoObject;
-      *MsumOfFd(x)      = 1;  //sum of tcp client is 1
+      *((char**)MpLogicName(x))                   = logicName;
+      *((int*)MtypeOfMap(x))                      = TCPCLIENT;
+      *((TcpClientInfoObject**)MpMapLinkInfo(x))  = tcpClientInfoObject;
+      *((int*)MsumOfFd(x))                        = 1;  //sum of tcp client is 1
       MinitPoolOfFd(x);
+      *((int*)MsumOfMap)                          = *((int*)MsumOfMap) + 1;
       
       //debug
-      printf("sizeOfGLinkMap is <%d>[%d]lines\n", getSizeOfGLinkMap(), __LINE__);
-      fflush(stdout);
+      //DEBUGINFO("size of glinkemap is %d", getSizeOfGLinkMap());
+      int _i=0;
+      for(_i=0; _i<64; _i++) {
+         //printf("%02X ", *(unsigned char*)(gLinkMap+_i));
+      }
+      //DEBUGINFO();
    }
 
    return COMM_SUCCESS;
@@ -103,7 +108,7 @@ int initComm(const char* configFilePath)
 #endif
    const char* _configFilePath = (NULL==configFilePath) ? defaultConfigFilePath : configFilePath;
    gLinkMap = malloc(sizeof(int));
-   *MsumOfMap = 0;
+   *(int*)MsumOfMap = 0;
 
    /* load config info */
 #ifdef TCP_CLIENT_MODE
