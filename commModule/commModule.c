@@ -99,20 +99,41 @@ int initTcpClientInfo(const char* configFilePath)
 
    return COMM_SUCCESS;
 }
+
+int connectTcpClient(int baseOfMap)
+{
+   TcpClientInfoObject* tcpClientInfoObject = *(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap);
+   DEBUG("dest ip is %s,%d,%d", tcpClientInfoObject->destIp, tcpClientInfoObject->destPort, tcpClientInfoObject->localPort);
+   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+   if(-1 == sockfd) {
+      printf("create socket fd error!\n");
+      return COMM_CREATE_FD_ERROR;
+   }
+   struct sockaddr_in serv_addr;
+   serv_addr.sin_family = AF_INET;
+   serv_addr.sin_port   = htons(tcpClientInfoObject->destPort);
+   serv_addr.sin_addr.s_addr = inet_addr(tcpClientInfoObject->destIp);
+   bzero(&(serv_addr.sin_zero), 8);
+   if (-1 == connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr))) {
+      printf("connect error!\n");
+      return COMM_CONNECT_FAILED;
+   }
+
+   *((int*)MbasePoolOfFd(baseOfMap)) = sockfd;
+   DEBUG("connect success! <%s : %d>", tcpClientInfoObject->destIp, tcpClientInfoObject->destPort);
+
+   return COMM_SUCCESS;
+}
 #endif
 
 int initComm(const char* configFilePath)
 {
-#ifdef MAX_LEN_VALUE
-#pragma message("hallo, initComm")
-#endif
    const char* _configFilePath = (NULL==configFilePath) ? defaultConfigFilePath : configFilePath;
    gLinkMap = malloc(sizeof(int));
    *(int*)MsumOfMap = 0;
 
    /* load config info */
 #ifdef TCP_CLIENT_MODE
-#pragma message("hallo, tcp client mode")  
    initTcpClientInfo(_configFilePath);
 #endif
 
@@ -123,13 +144,43 @@ int initComm(const char* configFilePath)
    //do something
 #endif
 
+   /* connect all links */
+   int _sumOfMap = *(int*)MsumOfMap;
+   int _curMapStart = sizeof(int);
+   while(_sumOfMap--) {
+      switch(*(int*)MtypeOfMap(_curMapStart)) {
+#ifdef TCP_CLIENT_MODE
+         case TCPCLIENT:
+            connectTcpClient(_curMapStart);
+            break;
+#endif
+#ifdef TCP_SERVER_MODE
+         case TCPSERVER:
+            connectTcpServer(_curMapStart);
+            break;
+#endif
+#ifdef UDP_MODE
+         case UDP:
+            connectUdp(_curMapStart);
+            break;
+#endif
+         default:
+            printf("unknown map type<%d>\n", *(int*)MtypeOfMap(_curMapStart));
+            break;
+      }
+      
+      //update _curMapStart
+      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+   }
+
    return COMM_SUCCESS;
 }
 
 int commRecv(int fd, char* recvBuf, int* recvLen)
 {
 #ifdef TCP_CLIENT_MODE
-   //do something
+   *recvLen = recv(fd, recvBuf, *recvLen, MSG_DONTWAIT);
+   
 #endif
 #ifdef TCP_SERVER_MODE
    //do something
@@ -144,7 +195,7 @@ int commRecv(int fd, char* recvBuf, int* recvLen)
 int commSend(int fd, const char* sendBuf, int sendLen)
 {
 #ifdef TCP_CLIENT_MODE
-   //do something
+   send(fd, sendBuf, sendLen, MSG_DONTWAIT);
 #endif
 #ifdef TCP_SERVER_MODE
    //do something
@@ -156,8 +207,19 @@ int commSend(int fd, const char* sendBuf, int sendLen)
    return COMM_SUCCESS;
 }
 
-int getAliveLink(const char* logicName, int* sumFd, int* pFd)
+int getAliveLink(const char* logicName, int* sumFd, int** pFd)
 {
-   return COMM_SUCCESS;
+   int _sumOfMap = *(int*)gLinkMap;
+   int _curMapStart = sizeof(int);
+   while(_sumOfMap--) {
+      if(0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName)) {
+         *sumFd = *(int*)MsumOfFd(_curMapStart);
+         *pFd = (int*)MbasePoolOfFd(_curMapStart);
+         return COMM_SUCCESS;
+      }
+      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+   }
+
+   return COMM_INVALID_LOGICNAME;
 }
 

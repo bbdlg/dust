@@ -2,6 +2,9 @@
 #define _COMMMDULE_H_
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #include "../tools/tools.h"
 
 /*
@@ -9,6 +12,9 @@
  * */
 enum CommError {
    COMM_SUCCESS = 0,
+   COMM_INVALID_LOGICNAME,
+   COMM_CREATE_FD_ERROR,
+   COMM_CONNECT_FAILED,
 };
 
 /*
@@ -57,7 +63,7 @@ extern int commSend(int fd, const char* sendBuf, int sendLen);
  * get all file descriptors associated with logicName.
  * put fd in pFd, and sum of fd in sumFd.
  * */
-extern int getAliveLink(const char* logicName, int* sumFd, int* pFd);
+extern int getAliveLink(const char* logicName, int* sumFd, int** pFd);
 
 extern int getSizeOfGLinkMap(void);
 
