@@ -30,7 +30,8 @@ DestIp      = 127.0.0.1 \n\
 DestPort    = 3333 \n\
 LocalPort   = 1234 \n\"        > commModule.conf";
    system(content);
-   initComm("./commModule.conf");
+   initComm("../commModule.conf");
+   printGLinkMap();
    TEST_ASSERT_EQUAL_INT(4+20*3, getSizeOfGLinkMap());
 
    int* pFd = NULL;
@@ -50,6 +51,8 @@ LocalPort   = 1234 \n\"        > commModule.conf";
       int recvlen = 100;
       commRecv(*pFd, recvbuf, &recvlen);
       if((recvlen) && (recvlen != -1)) {
+         char* sendbuf2 = "haha, now test if you type charectors on my way~~\n";
+         commSend(*pFd, sendbuf2, strlen(sendbuf2));
          break;
       }
       sleep(2);

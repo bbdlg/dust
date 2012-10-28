@@ -65,7 +65,18 @@ extern int commSend(int fd, const char* sendBuf, int sendLen);
  * */
 extern int getAliveLink(const char* logicName, int* sumFd, int** pFd);
 
+
+#define MAX_LEN_VALUE 100
+#define MsumOfMap                   gLinkMap
+#define MbaseMap(sizeOfGLinkMap)    (MsumOfMap + sizeOfGLinkMap)
+#define MpLogicName(x)              MbaseMap(x)
+#define MtypeOfMap(x)               (MpLogicName(x) + sizeof(char*))
+#define MpMapLinkInfo(x)            (MtypeOfMap(x) + sizeof(int))
+#define MsumOfFd(x)                 (MpMapLinkInfo(x) + sizeof(int*))
+#define MbasePoolOfFd(x)            (MsumOfFd(x) + sizeof(int))
+#define MinitPoolOfFd(x)            memset(MbasePoolOfFd(x), -1, (*(int*)MsumOfFd(x) * sizeof(int)))
 extern int getSizeOfGLinkMap(void);
+extern void printGLinkMap(void);
 
 #ifdef TCP_CLIENT_MODE
 typedef struct {
@@ -75,6 +86,11 @@ typedef struct {
 }TcpClientInfoObject;
 #endif
 
+#ifdef TCP_CLIENT_MODE
+typedef struct {
+   int   serverPort;
+}TcpServerInfoObject;
+#endif
 
 #endif
 
