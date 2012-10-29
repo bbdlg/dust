@@ -18,10 +18,14 @@
 #include <unistd.h>
 
 /* Error in this module */
-enum ToolsError {
+enum toolsErrNo {
    TOOLS_SUCCESS = 0,
+   TOOLS_CANNOT_OPEN_CONF,
    TOOLS_INVALID_PARA,
    TOOLS_CANNOT_FIND_VALUES,
+   TOOLS_ROWLEN_OVERFLOW,
+   TOOLS_SECTIONLEN_OVERFLOW,
+   toolsMAXERRNO
 };
 
 #define DEBUGERROR(format, ...)    printf("[%s]<line:%d> "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stdout)
@@ -60,5 +64,10 @@ extern int readValueFromConf(const char* filePath, const char* key, char* res, i
  * return TOOLS_SUCCESS, it means success...
  */
 extern int readValueFromConf_ext(const char* filePath, const int times, const char* field, const char* key, char* res, int* size);
+
+#define MAX_LEN_ROW        200
+#define MAX_LEN_SECTION    4096
+extern int getSection(const char* filePath, const int times, const char* field, char* section);
+extern int getValueOfKey(const char* section, const char* key, char* res, int* size);
 
 #endif

@@ -30,7 +30,7 @@ DestIp      = 127.0.0.1 \n\
 DestPort    = 3333 \n\
 LocalPort   = 1234 \n\"        > commModule.conf";
    system(content);
-   initComm("../commModule.conf");
+   initComm("./commModule.conf");
    printGLinkMap();
    TEST_ASSERT_EQUAL_INT(4+20*3, getSizeOfGLinkMap());
 
@@ -58,4 +58,6 @@ LocalPort   = 1234 \n\"        > commModule.conf";
       sleep(2);
    }
    TEST_ASSERT_EQUAL_STRING("1234554321", recvbuf);
+
+   system("rm -rf commModule.conf");
 }
