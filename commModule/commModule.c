@@ -107,10 +107,8 @@ int initTcpClientInfo(const char* configFilePath)
 int connectTcpClient(int baseOfMap)
 {
    TcpClientInfoObject* tcpClientInfoObject = *(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap);
-   DEBUG("dest ip is %s,%d,%d", tcpClientInfoObject->destIp, tcpClientInfoObject->destPort, tcpClientInfoObject->localPort);
    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if(-1 == sockfd) {
-      printf("create socket fd error!\n");
+   if(0 > sockfd) {
       return COMM_CREATE_FD_ERROR;
    }
    struct sockaddr_in serv_addr;
@@ -124,7 +122,6 @@ int connectTcpClient(int baseOfMap)
    }
 
    *((int*)MbasePoolOfFd(baseOfMap)) = sockfd;
-   DEBUG("connect success! <%s : %d>", tcpClientInfoObject->destIp, tcpClientInfoObject->destPort);
 
    return COMM_SUCCESS;
 }
@@ -136,7 +133,6 @@ int initTcpServerInfo(const char* configFilePath)
    int sizeRes = MAX_LEN_VALUE;
    char res[MAX_LEN_VALUE] = {0};
    int sumTcpServer = readValueFromConf_ext(configFilePath, 0, "TcpServer", "anything", res, &sizeRes);
-   DEBUG("sumTcpServer is <%d>, config file path is <%s>\n", sumTcpServer, configFilePath);
    while(sumTcpServer--) {
       char* logicName = NULL;
       int maxLink = -1;
@@ -152,7 +148,6 @@ int initTcpServerInfo(const char* configFilePath)
       logicName = (char*)malloc(sizeRes+1);
       memcpy(logicName, res, sizeRes);
       logicName[sizeRes] = 0;
-      DEBUG("name is <%s>, sizeRes<%d>, res<%s>", logicName, sizeRes, res);
 
       sizeRes = MAX_LEN_VALUE;
       memset(res, 0, sizeRes);
@@ -161,7 +156,6 @@ int initTcpServerInfo(const char* configFilePath)
          continue;
       }
       tcpServerInfoObject->serverPort = atoi(res);
-      DEBUG("port is <%d>, sizeRes<%d>, res<%s>", tcpServerInfoObject->serverPort, sizeRes, res);
 
       sizeRes = MAX_LEN_VALUE;
       memset(res, 0, sizeRes);
@@ -185,7 +179,7 @@ int initTcpServerInfo(const char* configFilePath)
       //DEBUGINFO("size of glinkemap is %d", getSizeOfGLinkMap());
       int _i=0;
       for(_i=0; _i<64; _i++) {
-         printf("%02X ", *(unsigned char*)(gLinkMap+_i));
+         //printf("%02X ", *(unsigned char*)(gLinkMap+_i));
       }
       //DEBUGINFO();
    }
@@ -195,6 +189,26 @@ int initTcpServerInfo(const char* configFilePath)
 
 int connectTcpServer(int baseOfMap)
 {
+   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+   if(0 > sockfd) {
+      return COMM_CREATE_FD_ERROR;
+   }
+
+   struct sockaddr_in serv_addr;
+   serv_addr.sin_family       = AF_INET;
+   serv_addr.sin_port         = htons((*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort);
+   serv_addr.sin_addr.s_addr  = htons(INADDR_ANY);
+   bzero(&(serv_addr.sin_zero), 8);
+
+   if(0 > bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) {
+      return COMM_BIND_FAILED;
+   }
+
+   if(0 > listen(sockfd, *(int*)MsumOfFd(baseOfMap))) {
+      return COMM_LISTEN_FAILED;
+   }
+
+   return COMM_SUCCESS;
 }
 #endif
 

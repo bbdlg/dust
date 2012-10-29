@@ -14,6 +14,8 @@ enum CommError {
    COMM_SUCCESS = 0,
    COMM_INVALID_LOGICNAME,
    COMM_CREATE_FD_ERROR,
+   COMM_BIND_FAILED,
+   COMM_LISTEN_FAILED,
    COMM_CONNECT_FAILED,
 };
 
@@ -74,7 +76,8 @@ extern int getAliveLink(const char* logicName, int* sumFd, int** pFd);
 #define MpMapLinkInfo(x)            (MtypeOfMap(x) + sizeof(int))
 #define MsumOfFd(x)                 (MpMapLinkInfo(x) + sizeof(int*))
 #define MbasePoolOfFd(x)            (MsumOfFd(x) + sizeof(int))
-#define MinitPoolOfFd(x)            memset(MbasePoolOfFd(x), -1, (*(int*)MsumOfFd(x) * sizeof(int)))
+#define fdInitValue                 -1
+#define MinitPoolOfFd(x)            memset(MbasePoolOfFd(x), fdInitValue, (*(int*)MsumOfFd(x) * sizeof(int)))
 extern int getSizeOfGLinkMap(void);
 extern void printGLinkMap(void);
 
