@@ -31,6 +31,14 @@ enum SortOfCommunication {
 };
 
 /*
+ * type of state
+ * */
+enum TypeOfState {
+   CONNECTED = 0,
+   DISCONNECTED,
+}
+
+/*
  * map of logicName and file descriptors.
  * gLinkMap points to a piece of memory, which have such struct:
  *    type     size           meaning
@@ -48,7 +56,7 @@ extern void* gLinkMap;
 /*
  * call this function before use other functions in commModule
  * */
-extern int initComm(const char* configFilePath);
+extern int commInit(const char* configFilePath);
 
 /*
  * interface of recv data
@@ -65,7 +73,20 @@ extern int commSend(int fd, const char* sendBuf, int sendLen);
  * get all file descriptors associated with logicName.
  * put fd in pFd, and sum of fd in sumFd.
  * */
-extern int getAliveLink(const char* logicName, int* sumFd, int** pFd);
+extern int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd);
+
+/*
+ * if logicName is null, it will maintain all logicNames,
+ * or the logicName only.
+ * */
+extern int commConnect(const char* logicName);
+
+/*
+ * if logicName is null, it will maintain all logicNames,
+ * or the logicName only.
+ * */
+extern int commSelect(const char* logicName);
+
 
 
 #define MAX_LEN_VALUE 100
@@ -86,12 +107,14 @@ typedef struct {
    char* destIp;
    int   destPort;
    int   localPort;
+   int   state;
 }TcpClientInfoObject;
 #endif
 
 #ifdef TCP_CLIENT_MODE
 typedef struct {
    int   serverPort;
+   int   state;
 }TcpServerInfoObject;
 #endif
 

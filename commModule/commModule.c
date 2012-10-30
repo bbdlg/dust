@@ -212,7 +212,7 @@ int connectTcpServer(int baseOfMap)
 }
 #endif
 
-int initComm(const char* configFilePath)
+int commInit(const char* configFilePath)
 {
    const char* _configFilePath = (NULL==configFilePath) ? defaultConfigFilePath : configFilePath;
    gLinkMap = malloc(sizeof(int));
@@ -229,35 +229,6 @@ int initComm(const char* configFilePath)
 #ifdef UDP_MODE
    //do something
 #endif
-
-   /* connect all links */
-   int _sumOfMap = *(int*)MsumOfMap;
-   int _curMapStart = sizeof(int);
-   while(_sumOfMap--) {
-      switch(*(int*)MtypeOfMap(_curMapStart)) {
-#ifdef TCP_CLIENT_MODE
-         case TCPCLIENT:
-            connectTcpClient(_curMapStart);
-            break;
-#endif
-#ifdef TCP_SERVER_MODE
-         case TCPSERVER:
-            connectTcpServer(_curMapStart);
-            break;
-#endif
-#ifdef UDP_MODE
-         case UDP:
-            connectUdp(_curMapStart);
-            break;
-#endif
-         default:
-            printf("unknown map type<%d>\n", *(int*)MtypeOfMap(_curMapStart));
-            break;
-      }
-      
-      //update _curMapStart
-      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
-   }
 
    return COMM_SUCCESS;
 }
@@ -293,7 +264,7 @@ int commSend(int fd, const char* sendBuf, int sendLen)
    return COMM_SUCCESS;
 }
 
-int getAliveLink(const char* logicName, int* sumFd, int** pFd)
+int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd)
 {
    int _sumOfMap = *(int*)gLinkMap;
    int _curMapStart = sizeof(int);
@@ -308,4 +279,62 @@ int getAliveLink(const char* logicName, int* sumFd, int** pFd)
 
    return COMM_INVALID_LOGICNAME;
 }
+
+int commConnect(const char* logicName)
+{
+   int _sumOfMap = *(int*)gLinkMap;
+   int _curMapStart = sizeof(int);
+   while(_sumOfMap--) {
+      if((logicName) && (0 != strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+         _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+         continue;
+      }
+      switch(*(int*)MtypeOfMap(_curMapStart)) {
+#ifdef TCP_CLIENT_MODE
+         case TCPCLIENT:
+            if((DISCONNECTED == (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state) 
+                  || (fdInitValue == *(int*)MbasePoolOfFd)) {
+               DEBUG("tcp client connect again");
+               connectTcpClient(_curMapStart);
+            }
+            break;
+#endif
+#ifdef TCP_SERVER_MODE
+         case TCPSERVER:
+            if(0 < (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->serverPort) {
+               DEBUG("serverPort is invalid:<%d>", (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->serverPort);
+               break;
+            }
+            if(DISCONNECTED == (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->state) {
+               connectTcpServer(_curMapStart);
+            }
+            struct sockaddr_in clientAddr;
+            socklen_t length = sizeof(clientAddr);
+            int newFd = accept((*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->serverPort,
+                                 (struct sockaddr*)&clientAddr, &length);
+            if(0 < newFd) {
+               DEBUG("accept failed:<%d>", newFd);
+               break;
+            }
+            //fill into a space in fdPool
+            int i;
+            for(i=0; i<*(int*)MsumOfFd; i++) {
+               while(
+
+            break;
+#endif
+#ifdef UDP_MODE
+         case UDP:
+            break;
+#endif
+         default:
+            DEBUG("unknow map type:<%d>", *(int*)MtypeOfMap(_curMapStart));
+            break;
+      }
+      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+   }
+
+   return COMM_SUCCESS;
+}
+   
 
