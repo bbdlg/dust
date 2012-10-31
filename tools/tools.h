@@ -59,6 +59,17 @@ enum toolsErrNo {
 extern int readValueFromConf(const char* filePath, const char* key, char* res, int* size);
 
 /* extend to readValueFromConf
+ * config file like this:
+ *
+ * [Field1]
+ * key1  = value1;
+ *
+ * [Field1]
+ * key1  = value2;
+ *
+ * [Field2]
+ * key3  = value3;
+ *
  * return how many times 'field' appears in filePath, if times=0;
  * return TOOLS_CANNOT_FIND_VALUES, it means there's no values found;
  * return TOOLS_SUCCESS, it means success...
