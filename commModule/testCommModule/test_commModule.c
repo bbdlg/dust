@@ -8,6 +8,8 @@ void setUp(void)
 
 void tearDown(void)
 {
+   destorySockFd(NULL);
+   system("killall nc >/dev/null 2>&1");
 }
 
 void test_tcp_client_init(void)
@@ -104,12 +106,13 @@ MaxLink     = 10 \n\"        > commModule.conf";
    TEST_ASSERT_EQUAL_STRING("LISTEN", res);
 
    system("nc 127.0.0.1 8888 &");
+   system("nc 127.0.0.1 8888 &");
+   system("nc 127.0.0.1 8888 &");
+   //sleep(1);
 
    getResultFromSystemCall("netstat -an | grep 8888 | wc -l", res, &resSize);
-   TEST_ASSERT_EQUAL_STRING("3", res);
-
-
-   system("rm -rf commModule.conf");
+   TEST_ASSERT_EQUAL_STRING("7", res);
+   //printGLinkMap(NULL);
 
    /*
    while(1) {
@@ -141,12 +144,11 @@ MaxLink     = 10 \n\"        > commModule.conf";
    system("nc 127.0.0.1 8880 &");
    system("nc 127.0.0.1 8880 &");
    system("nc 127.0.0.1 8880 &");
-   system("nc 127.0.0.1 8880 &");
-   
-   sleep(1);
+
    int ret = commSelect("tcpServer1");
    TEST_ASSERT_EQUAL_INT(1, ret);
-   system("netstat -an|grep 8880");
+   commConnect("tcpServer1");
+   //system("netstat -an|grep 8880");
 
    system("rm -rf commModule.conf");
 }

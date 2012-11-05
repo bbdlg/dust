@@ -93,8 +93,17 @@ extern int commConnect(const char* logicName);
  * */
 extern int commSelect(const char* logicName);
 
+typedef void DataProcFunc(const char* logicName, const int fd, const char* recvbuf, const int recvlen);
+extern int commSetDataProcFunc(const char* logicName, DataProcFunc func);
 
-#define MAX_LEN_VALUE 100
+/* 
+ * before call this function, you must call commInit() and commConnect(NULL);
+ * you call this function periodically.
+ * */
+extern int commProcess(void);
+
+#define MAX_LEN_VALUE   100
+#define MAX_LEN_BUF     4096
 #define MsumOfMap                   gLinkMap
 #define MbaseMap(sizeOfGLinkMap)    (MsumOfMap + sizeOfGLinkMap)
 #define MpLogicName(x)              MbaseMap(x)
@@ -105,10 +114,12 @@ extern int commSelect(const char* logicName);
 #define fdInitValue                 -1
 #define MinitPoolOfFd(x)            memset(MbasePoolOfFd(x), fdInitValue, (*(int*)MsumOfFd(x) * sizeof(int)))
 extern int getSizeOfGLinkMap(void);
+extern void destorySockFd(const char* logicName);
 extern void printGLinkMap(const char* logicName);
 
 #ifdef TCP_CLIENT_MODE
 typedef struct {
+   DataProcFunc* func;
    char* destIp;
    int   destPort;
    int   localPort;
@@ -118,6 +129,7 @@ typedef struct {
 
 #ifdef TCP_CLIENT_MODE
 typedef struct {
+   DataProcFunc* func;
    int   serverPort;
    int   state;
 }TcpServerInfoObject;

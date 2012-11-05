@@ -1,6 +1,7 @@
 #include "commModule.h"
 
 void* gLinkMap = NULL;
+char gRecvBuf[MAX_LEN_BUF];
 struct timeval timeOutOfSelect = {0, 100000}; //default timeout: 100ms
 const char* defaultConfigFilePath = "./commModule.conf";
 
@@ -57,6 +58,7 @@ void printGLinkMap(const char* logicName)
    char* sortName[] = {"tcp client", "tcp server", "udp", "serial", "can",};
    for(i=0; i<sumOfMap; i++) {
       if(logicName && strcmp(logicName, *(char**)MpLogicName(cur))) {
+         cur += 4*(4 + *(int*)MsumOfFd(cur));
          continue;
       }
       printf(">> %d << \"%.15s\" \"%.15s\" <%.3d>fds:[", i+1, *(char**)MpLogicName(cur), sortName[*(int*)MtypeOfMap(cur)], *(int*)MsumOfFd(cur));
@@ -69,6 +71,27 @@ void printGLinkMap(const char* logicName)
    }
    printf("\n\n");
    fflush(stdout);
+}
+
+void destorySockFd(const char* logicName)
+{
+   int sumOfMap = *(int*)gLinkMap;
+   int i=0;
+   int cur=4;
+   for(i=0; i<sumOfMap; i++) {
+      if(logicName && strcmp(logicName, *(char**)MpLogicName(cur))) {
+         cur += 4*(4 + *(int*)MsumOfFd(cur));
+         continue;
+      }
+      int j=0;
+      for(j=0; j<*(int*)MsumOfFd(cur); j++) {
+         if(fdInitValue != *((int*)MbasePoolOfFd(cur) + j)) {
+            close(*((int*)MbasePoolOfFd(cur) + j));
+            //DEBUG("DESTORY %d", *((int*)MbasePoolOfFd(cur) + j));
+         }
+      }
+      cur += 4*(4 + *(int*)MsumOfFd(cur));
+   }
 }
 
 int getSizeOfGLinkMap(void)
@@ -295,7 +318,7 @@ accept:
       int length = sizeof(clientAddr);
       int newFd = accept(*(int*)MbasePoolOfFd(baseOfMap), (struct sockaddr*)&clientAddr, &length);
       if(0 > newFd) {
-         DEBUG("accept failed:<%d>", newFd);
+         //DEBUG("accept failed:<%d>", newFd);
          break;
       }
 
@@ -304,7 +327,7 @@ accept:
       for(i=1; i<(*(int*)MsumOfFd(baseOfMap) - 1); i++) {
          if(-1 == *((int*)MbasePoolOfFd(baseOfMap) + i)) {
             *((int*)MbasePoolOfFd(baseOfMap) + i) = newFd;
-            DEBUG("newFd is fill in gLinkMap");
+            //DEBUG("newFd is fill in gLinkMap");
             break;
          }
       }
@@ -377,6 +400,12 @@ int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd)
       if(0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName)) {
          *sumFd = *(int*)MsumOfFd(_curMapStart);
          *pFd = (int*)MbasePoolOfFd(_curMapStart);
+#ifdef TCP_SERVER_MODE
+         if(TCP_SERVER_MODE == *(int*)MtypeOfMap(_curMapStart)) {
+            (*sumFd)--;
+            (*pFd)++;
+         }
+#endif
          return COMM_SUCCESS;
       }
       _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
@@ -436,7 +465,7 @@ int commSelect(const char* logicName)
       for(i=0; i<*(int*)MsumOfFd(_curMapStart); i++) {
          _fd = *((int*)MbasePoolOfFd(_curMapStart) + i);
          if(fdInitValue != _fd) {
-            DEBUG("LISTEN: <%d>", _fd);
+            //DEBUG("LISTEN: <%d>", _fd);
             FD_SET(_fd, &fdSet);
             _maxSockFd = _maxSockFd>_fd ? _maxSockFd : _fd;
          }
@@ -446,5 +475,63 @@ int commSelect(const char* logicName)
    }
 
    return select(_maxSockFd+1, &fdSet, NULL, NULL, &timeOutOfSelect);
+}
+
+int commSetDataProcFunc(const char* logicName, DataProcFunc func)
+{
+   int sumOfMap = *(int*)gLinkMap;
+   int i=0;
+   int cur=4;
+   for(i=0; i<sumOfMap; i++) {
+      if(logicName && strcmp(logicName, *(char**)MpLogicName(cur))) {
+         cur += 4*(4 + *(int*)MsumOfFd(cur));
+         continue;
+      }
+#ifdef TCP_SERVER_MODE
+      (*(TcpServerInfoObject**)MpMapLinkInfo(cur))->func = func;
+#endif
+#ifdef TCP_CLIENT_MODE
+      (*(TcpClientInfoObject**)MpMapLinkInfo(cur))->func = func;
+#endif
+#ifdef UDP_MODE
+      (*(UdpInfoObject**)MpMapLinkInfo(cur))->func = func;
+#endif
+      return COMM_SUCCESS;
+   }
+
+   return COMM_INVALID_LOGICNAME;
+}
+
+
+int commProcess(void)
+{
+   while(!commSelect(NULL)) {
+      //try to accept
+      commConnect(NULL);
+
+      //recv all fd
+      int _sumOfMap = *(int*)gLinkMap;
+      int _curMapStart = sizeof(int);
+      while(_sumOfMap--) {
+         int i = 0;
+         for(i=0; i<*(int*)MsumOfFd(_curMapStart); i++) {
+            int recvlen = 0;
+            commRecv(*((int*)MbasePoolOfFd(_curMapStart)+i), gRecvBuf, &recvlen);
+            if(recvlen) {
+#ifdef TCP_SERVER_MODE
+               (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->func
+#endif
+#ifdef TCP_CLIENT_MODE
+#endif
+#ifdef UDP_MODE
+#endif
+            }
+         }
+         _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+      }
+      
+   }
+
+   return COMM_SUCCESS;
 }
 
