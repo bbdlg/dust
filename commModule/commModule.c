@@ -1,9 +1,54 @@
 #include "commModule.h"
 
 void* gLinkMap = NULL;
+struct timeval timeOutOfSelect = {0, 100000}; //default timeout: 100ms
 const char* defaultConfigFilePath = "./commModule.conf";
 
-void printGLinkMap(void)
+int setSocketNonBlock(int nSocketFd)
+{
+   int nOpts;
+
+   if (nSocketFd <= 0)
+   {
+      return COMM_SET_SOCKET_FAILED;
+   }
+
+   nOpts = fcntl(nSocketFd, F_GETFL);
+   if (nOpts < 0)
+   {
+      return COMM_SET_SOCKET_FAILED;
+   }
+   if (fcntl(nSocketFd, F_SETFL, nOpts | O_NONBLOCK) < 0)
+   {
+      return COMM_SET_SOCKET_FAILED;
+   }
+
+   return COMM_SUCCESS;
+}
+
+int setSocketBlock(int nSocketFd)
+{
+   int nOpts;
+
+   if (nSocketFd <= 0)
+   {
+      return COMM_SET_SOCKET_FAILED;
+   }
+
+   nOpts = fcntl(nSocketFd, F_GETFL);
+   if (nOpts < 0)
+   {
+      return COMM_SET_SOCKET_FAILED;
+   }
+   if (fcntl(nSocketFd, F_SETFL, nOpts & ~O_NONBLOCK) < 0)
+   {
+      return COMM_SET_SOCKET_FAILED;
+   }
+
+   return COMM_SUCCESS;
+}
+
+void printGLinkMap(const char* logicName)
 {
    printf("\n@@@@@@@@@@@@@@@@@@ Link Map @@@@@@@@@@@@@@@@@@@\n");
    int sumOfMap = *(int*)gLinkMap;
@@ -11,10 +56,19 @@ void printGLinkMap(void)
    int cur=4;
    char* sortName[] = {"tcp client", "tcp server", "udp", "serial", "can",};
    for(i=0; i<sumOfMap; i++) {
-      printf(">> %d << \"%.15s\" \"%.15s\" <%.3d>fds\n", i+1, *(char**)MpLogicName(cur), sortName[*(int*)MtypeOfMap(cur)], *(int*)MsumOfFd(cur));
+      if(logicName && strcmp(logicName, *(char**)MpLogicName(cur))) {
+         continue;
+      }
+      printf(">> %d << \"%.15s\" \"%.15s\" <%.3d>fds:[", i+1, *(char**)MpLogicName(cur), sortName[*(int*)MtypeOfMap(cur)], *(int*)MsumOfFd(cur));
+      int j=0;
+      for(j=0; j<*(int*)MsumOfFd(cur); j++) {
+         printf("%06d ", *((int*)MbasePoolOfFd(cur) + j));
+      }
+      printf("]\n");
       cur += 4*(4 + *(int*)MsumOfFd(cur));
    }
    printf("\n\n");
+   fflush(stdout);
 }
 
 int getSizeOfGLinkMap(void)
@@ -81,6 +135,8 @@ int initTcpClientInfo(const char* configFilePath)
          continue;
       }
       tcpClientInfoObject->localPort = atoi(res);
+
+      tcpClientInfoObject->state     = DISCONNECTED;
       
       //fill gLinkMap
       gLinkMap = realloc(gLinkMap, (getSizeOfGLinkMap() + 4*sizeof(int) + 1*sizeof(int)));
@@ -106,22 +162,30 @@ int initTcpClientInfo(const char* configFilePath)
 
 int connectTcpClient(int baseOfMap)
 {
+   if((CONNECTED == (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->state) 
+         && (fdInitValue != *(int*)MbasePoolOfFd(baseOfMap))) {
+      return COMM_SUCCESS;
+   }
    TcpClientInfoObject* tcpClientInfoObject = *(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap);
    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
    if(0 > sockfd) {
       return COMM_CREATE_FD_ERROR;
    }
-   struct sockaddr_in serv_addr;
-   serv_addr.sin_family       = AF_INET;
-   serv_addr.sin_port         = htons(tcpClientInfoObject->destPort);
-   serv_addr.sin_addr.s_addr  = inet_addr(tcpClientInfoObject->destIp);
-   bzero(&(serv_addr.sin_zero), 8);
-   if (-1 == connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr))) {
+   struct sockaddr_in serverAddr;
+   serverAddr.sin_family       = AF_INET;
+   serverAddr.sin_port         = htons(tcpClientInfoObject->destPort);
+   serverAddr.sin_addr.s_addr  = inet_addr(tcpClientInfoObject->destIp);
+   bzero(&(serverAddr.sin_zero), 8);
+
+   setSocketNonBlock(sockfd);
+
+   if (-1 == connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr))) {
       printf("connect error!\n");
       return COMM_CONNECT_FAILED;
    }
 
    *((int*)MbasePoolOfFd(baseOfMap)) = sockfd;
+   (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
 
    return COMM_SUCCESS;
 }
@@ -157,6 +221,8 @@ int initTcpServerInfo(const char* configFilePath)
       }
       tcpServerInfoObject->serverPort = atoi(res);
 
+      tcpServerInfoObject->state      = DISCONNECTED;
+
       sizeRes = MAX_LEN_VALUE;
       memset(res, 0, sizeRes);
       if(TOOLS_CANNOT_FIND_VALUES == readValueFromConf_ext(configFilePath, sumTcpServer+1, "TcpServer", "MaxLink", res, &sizeRes)) {
@@ -189,18 +255,29 @@ int initTcpServerInfo(const char* configFilePath)
 
 int connectTcpServer(int baseOfMap)
 {
+   if(0 > (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort) {
+      DEBUG("serverPort is invalid:<%d>", (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort);
+      return COMM_INVALID_PORT;
+   }
+
+   struct sockaddr_in clientAddr;
+   struct sockaddr_in serverAddr;
+   if((CONNECTED == (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->state) 
+         && (fdInitValue != *(int*)MbasePoolOfFd(baseOfMap))) {
+      goto accept;
+   }
+
    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
    if(0 > sockfd) {
       return COMM_CREATE_FD_ERROR;
    }
 
-   struct sockaddr_in serv_addr;
-   serv_addr.sin_family       = AF_INET;
-   serv_addr.sin_port         = htons((*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort);
-   serv_addr.sin_addr.s_addr  = htons(INADDR_ANY);
-   bzero(&(serv_addr.sin_zero), 8);
+   serverAddr.sin_family       = AF_INET;
+   serverAddr.sin_port         = htons((*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort);
+   serverAddr.sin_addr.s_addr  = htons(INADDR_ANY);
+   bzero(&(serverAddr.sin_zero), 8);
 
-   if(0 > bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) {
+   if(0 > bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr))) {
       return COMM_BIND_FAILED;
    }
 
@@ -208,6 +285,34 @@ int connectTcpServer(int baseOfMap)
       return COMM_LISTEN_FAILED;
    }
 
+   setSocketNonBlock(sockfd);
+
+   *((int*)MbasePoolOfFd(baseOfMap) + 0) = sockfd;
+   (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
+
+accept:
+   while(1) {
+      int length = sizeof(clientAddr);
+      int newFd = accept(*(int*)MbasePoolOfFd(baseOfMap), (struct sockaddr*)&clientAddr, &length);
+      if(0 > newFd) {
+         DEBUG("accept failed:<%d>", newFd);
+         break;
+      }
+
+      //fill into a space in fdPool
+      int i;
+      for(i=1; i<(*(int*)MsumOfFd(baseOfMap) - 1); i++) {
+         if(-1 == *((int*)MbasePoolOfFd(baseOfMap) + i)) {
+            *((int*)MbasePoolOfFd(baseOfMap) + i) = newFd;
+            DEBUG("newFd is fill in gLinkMap");
+            break;
+         }
+      }
+      if(i == *(int*)MsumOfFd(baseOfMap)) {
+         DEBUG("can't find space to fill newFd, maybe there's too many links in serverPort:<%d>", (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort);
+         break;
+      }
+   }
    return COMM_SUCCESS;
 }
 #endif
@@ -289,47 +394,24 @@ int commConnect(const char* logicName)
          _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
          continue;
       }
-      switch(*(int*)MtypeOfMap(_curMapStart)) {
+
+      //jump table of connect functions
+      int (*connectFunc[])(int baseOfMap) = {
 #ifdef TCP_CLIENT_MODE
-         case TCPCLIENT:
-            if((DISCONNECTED == (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state) 
-                  || (fdInitValue == *(int*)MbasePoolOfFd)) {
-               DEBUG("tcp client connect again");
-               connectTcpClient(_curMapStart);
-            }
-            break;
+         connectTcpClient,
 #endif
 #ifdef TCP_SERVER_MODE
-         case TCPSERVER:
-            if(0 < (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->serverPort) {
-               DEBUG("serverPort is invalid:<%d>", (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->serverPort);
-               break;
-            }
-            if(DISCONNECTED == (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->state) {
-               connectTcpServer(_curMapStart);
-            }
-            struct sockaddr_in clientAddr;
-            socklen_t length = sizeof(clientAddr);
-            int newFd = accept((*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->serverPort,
-                                 (struct sockaddr*)&clientAddr, &length);
-            if(0 < newFd) {
-               DEBUG("accept failed:<%d>", newFd);
-               break;
-            }
-            //fill into a space in fdPool
-            int i;
-            for(i=0; i<*(int*)MsumOfFd; i++) {
-               while(
-
-            break;
+         connectTcpServer,
 #endif
 #ifdef UDP_MODE
-         case UDP:
-            break;
+         connectUdp,
 #endif
-         default:
-            DEBUG("unknow map type:<%d>", *(int*)MtypeOfMap(_curMapStart));
-            break;
+      };
+      if(COMM_INVALID_MAPTYPE == checkMapType(*(int*)MtypeOfMap(_curMapStart))) {
+         DEBUG("unknow map type:<%d>", *(int*)MtypeOfMap(_curMapStart));
+      }
+      else {
+         connectFunc[*(int*)MtypeOfMap(_curMapStart)](_curMapStart);
       }
       _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
    }
@@ -337,4 +419,32 @@ int commConnect(const char* logicName)
    return COMM_SUCCESS;
 }
    
+int commSelect(const char* logicName)
+{
+   int _sumOfMap = *(int*)gLinkMap;
+   int _curMapStart = sizeof(int);
+   int _maxSockFd = 0;
+   fd_set fdSet;
+   FD_ZERO(&fdSet);
+   while(_sumOfMap--) {
+      if((logicName) && (0 != strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+         _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+         continue;
+      }
+      
+      int i=0, _fd=0;
+      for(i=0; i<*(int*)MsumOfFd(_curMapStart); i++) {
+         _fd = *((int*)MbasePoolOfFd(_curMapStart) + i);
+         if(fdInitValue != _fd) {
+            DEBUG("LISTEN: <%d>", _fd);
+            FD_SET(_fd, &fdSet);
+            _maxSockFd = _maxSockFd>_fd ? _maxSockFd : _fd;
+         }
+      }
+
+      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+   }
+
+   return select(_maxSockFd+1, &fdSet, NULL, NULL, &timeOutOfSelect);
+}
 

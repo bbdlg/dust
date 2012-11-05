@@ -10,7 +10,7 @@ void tearDown(void)
 {
 }
 
-void test_tcp_client(void)
+void test_tcp_client_init(void)
 {
    char* content = " echo \"\
 [TcpClient] \n\
@@ -19,13 +19,34 @@ DestIp      = 127.0.0.1 \n\
 DestPort    = 1111 \n\
 LocalPort   = 1234 \n\"        > commModule.conf";
    system(content);
-   initComm("./commModule.conf");
-   //printGLinkMap();
+   commInit("./commModule.conf");
+   TEST_ASSERT_EQUAL_INT(4+20, getSizeOfGLinkMap());
+}
+
+void test_tcp_client_connect(void)
+{
+   char* content = " echo \"\
+[TcpClient] \n\
+LogicName   = tcpClient1 \n\
+DestIp      = 192.168.0.1 \n\
+DestPort    = 1111 \n\
+LocalPort   = 1234 \n\"        > commModule.conf";
+   system(content);
+   commInit("./commModule.conf");
    TEST_ASSERT_EQUAL_INT(4+20, getSizeOfGLinkMap());
 
+   //system("nc -l 1111 &");
+   commConnect("tcpClient1");
+
+   char res[100] = {0};
+   int resSize = 100;
+   //getResultFromSystemCall("netstat -an | grep 8888 | awk '{print $6}'", res, &resSize);
+   //TEST_ASSERT_EQUAL_STRING("LISTEN", res);
+
+   /*
    int* pFd = NULL;
    int _sumOfFd = 0;
-   if(COMM_INVALID_LOGICNAME == getAliveLink("tcpClient1", &_sumOfFd, &pFd)) {
+   if(COMM_INVALID_LOGICNAME == commGetAliveLinks("tcpClient1", &_sumOfFd, &pFd)) {
       TEST_FAIL_MESSAGE("can't find logicName");
    }
    if(-1 == *pFd) {
@@ -49,24 +70,84 @@ LocalPort   = 1234 \n\"        > commModule.conf";
    TEST_ASSERT_EQUAL_STRING("1234", recvbuf);
 
    //system("rm -rf commModule.conf");
+   */
 }
 
-void test_tcp_server(void)
+void test_tcp_server_init(void)
 {
    char* content = " echo \"\
 [TcpServer] \n\
-LogicName   = tcpClient1 \n\
+LogicName   = tcpServer1 \n\
 ServerPort  = 8888 \n\
 MaxLink     = 10 \n\"        > commModule.conf";
    system(content);
-   initComm("./commModule.conf");
-   //printGLinkMap();
+   commInit("./commModule.conf");
    TEST_ASSERT_EQUAL_INT(4+16+40, getSizeOfGLinkMap());
+}
+
+void test_tcp_server_connect(void)
+{
+   char* content = " echo \"\
+[TcpServer] \n\
+LogicName   = tcpServer1 \n\
+ServerPort  = 8888 \n\
+MaxLink     = 10 \n\"        > commModule.conf";
+   system(content);
+   commInit("./commModule.conf");
+   TEST_ASSERT_EQUAL_INT(4+16+40, getSizeOfGLinkMap());
+
+   commConnect("tcpServer1");
 
    char res[100] = {0};
    int resSize = 100;
    getResultFromSystemCall("netstat -an | grep 8888 | awk '{print $6}'", res, &resSize);
    TEST_ASSERT_EQUAL_STRING("LISTEN", res);
 
+   system("nc 127.0.0.1 8888 &");
+
+   getResultFromSystemCall("netstat -an | grep 8888 | wc -l", res, &resSize);
+   TEST_ASSERT_EQUAL_STRING("3", res);
+
+
+   system("rm -rf commModule.conf");
+
+   /*
+   while(1) {
+      commConnect("tcpServer1");
+      printGLinkMap("tcpServer1");
+      sleep(1);
+   }
+   */
+}
+
+void test_tcp_server_select(void)
+{
+   char* content = " echo \"\
+[TcpServer] \n\
+LogicName   = tcpServer1 \n\
+ServerPort  = 8880 \n\
+MaxLink     = 10 \n\"        > commModule.conf";
+   system(content);
+   commInit("./commModule.conf");
+   TEST_ASSERT_EQUAL_INT(4+16+40, getSizeOfGLinkMap());
+
+   commConnect("tcpServer1");
+
+   char res[100] = {0};
+   int resSize = 100;
+   getResultFromSystemCall("netstat -an | grep 8880 | awk '{print $6}'", res, &resSize);
+   TEST_ASSERT_EQUAL_STRING("LISTEN", res);
+
+   system("nc 127.0.0.1 8880 &");
+   system("nc 127.0.0.1 8880 &");
+   system("nc 127.0.0.1 8880 &");
+   system("nc 127.0.0.1 8880 &");
+   
+   sleep(1);
+   int ret = commSelect("tcpServer1");
+   TEST_ASSERT_EQUAL_INT(1, ret);
+   system("netstat -an|grep 8880");
+
    system("rm -rf commModule.conf");
 }
+

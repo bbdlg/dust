@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include "../tools/tools.h"
 
 /*
@@ -13,10 +14,13 @@
 enum CommError {
    COMM_SUCCESS = 0,
    COMM_INVALID_LOGICNAME,
+   COMM_INVALID_MAPTYPE,
+   COMM_INVALID_PORT,
    COMM_CREATE_FD_ERROR,
    COMM_BIND_FAILED,
    COMM_LISTEN_FAILED,
    COMM_CONNECT_FAILED,
+   COMM_SET_SOCKET_FAILED,
 };
 
 /*
@@ -26,9 +30,11 @@ enum SortOfCommunication {
    TCPCLIENT = 0,
    TCPSERVER,
    UDP,
-   SERIAL,
-   CAN,
+   //SERIAL,
+   //CAN,
+   UNKNOWN_TYPE
 };
+#define checkMapType(type)    (type>=UNKNOWN_TYPE ? COMM_INVALID_MAPTYPE : COMM_SUCCESS)
 
 /*
  * type of state
@@ -36,7 +42,7 @@ enum SortOfCommunication {
 enum TypeOfState {
    CONNECTED = 0,
    DISCONNECTED,
-}
+};
 
 /*
  * map of logicName and file descriptors.
@@ -88,7 +94,6 @@ extern int commConnect(const char* logicName);
 extern int commSelect(const char* logicName);
 
 
-
 #define MAX_LEN_VALUE 100
 #define MsumOfMap                   gLinkMap
 #define MbaseMap(sizeOfGLinkMap)    (MsumOfMap + sizeOfGLinkMap)
@@ -100,7 +105,7 @@ extern int commSelect(const char* logicName);
 #define fdInitValue                 -1
 #define MinitPoolOfFd(x)            memset(MbasePoolOfFd(x), fdInitValue, (*(int*)MsumOfFd(x) * sizeof(int)))
 extern int getSizeOfGLinkMap(void);
-extern void printGLinkMap(void);
+extern void printGLinkMap(const char* logicName);
 
 #ifdef TCP_CLIENT_MODE
 typedef struct {
