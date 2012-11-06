@@ -2,6 +2,7 @@
 #define _COMMMDULE_H_
 
 #include <stdio.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -68,12 +69,12 @@ extern int commInit(const char* configFilePath);
  * interface of recv data
  * recvBuf and recvLen are all Value-result parameter.
  * */
-extern int commRecv(int fd, char* recvBuf, int* recvLen);
+extern int commRecv(int *fd, char* recvBuf, int* recvLen);
 
 /*
  * interface of send data
  * */
-extern int commSend(int fd, const char* sendBuf, int sendLen);
+extern int commSend(int fd, const char* sendBuf, int* sendLen);
 
 /*
  * get all file descriptors associated with logicName.
@@ -93,8 +94,9 @@ extern int commConnect(const char* logicName);
  * */
 extern int commSelect(const char* logicName);
 
+typedef void RegisterFunc(char* recvbuf, int* recvlen);
 typedef void DataProcFunc(const char* logicName, const int fd, const char* recvbuf, const int recvlen);
-extern int commSetDataProcFunc(const char* logicName, DataProcFunc func);
+extern int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataProcFunc* dataProcFunc);
 
 /* 
  * before call this function, you must call commInit() and commConnect(NULL);
@@ -119,7 +121,8 @@ extern void printGLinkMap(const char* logicName);
 
 #ifdef TCP_CLIENT_MODE
 typedef struct {
-   DataProcFunc* func;
+   RegisterFunc* registerFunc;
+   DataProcFunc* dataProcFunc;
    char* destIp;
    int   destPort;
    int   localPort;
@@ -129,7 +132,8 @@ typedef struct {
 
 #ifdef TCP_CLIENT_MODE
 typedef struct {
-   DataProcFunc* func;
+   RegisterFunc* registerFunc;
+   DataProcFunc* dataProcFunc;
    int   serverPort;
    int   state;
 }TcpServerInfoObject;

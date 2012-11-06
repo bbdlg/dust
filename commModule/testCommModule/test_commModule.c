@@ -1,9 +1,14 @@
 #include "../commModule.h"
+#include "../../lgModule/lgModule.h"
 #include "../../tools/tools.h"
 #include "../../unity/src/unity.h"
 
 void setUp(void)
 {
+   if(gLinkMap) {
+      free(gLinkMap);
+   }
+   gLinkMap = NULL;
 }
 
 void tearDown(void)
@@ -128,7 +133,61 @@ void test_tcp_server_select(void)
    char* content = " echo \"\
 [TcpServer] \n\
 LogicName   = tcpServer1 \n\
-ServerPort  = 8880 \n\
+ServerPort  = 8881 \n\
+MaxLink     = 3 \n\"        > commModule.conf";
+   system(content);
+   commInit("./commModule.conf");
+   TEST_ASSERT_EQUAL_INT(4+16+4*3, getSizeOfGLinkMap());
+
+   commConnect("tcpServer1");
+
+   char res[100] = {0};
+   int resSize = 100;
+   getResultFromSystemCall("netstat -an | grep 8881 | awk '{print $6}'", res, &resSize);
+   TEST_ASSERT_EQUAL_STRING("LISTEN", res);
+
+   //DEBUG("-------------------------");
+   //while(1) {
+   //   commProcess();
+   //}
+}
+
+void showFunc(int argc, char* argv[])
+{
+   if(strcmp("show", argv[0])) {
+      //term("no such command:<%s>", argv[0]);
+      return;
+   }
+   if(strcmp("map", argv[1])) {
+      //term("no such command:<%s>", argv[1]);
+      return;
+   }
+   printGLinkMap(NULL);
+   term("you tell me to show map");
+}
+
+void func0(char* buf, int* len)
+{
+   welcomeLp(buf, len);
+}
+
+void func1(const char* logicName, const int fd, const char* recvbuf, const int recvlen)
+{
+   DEBUG(">>> <%d>bytes From logicName<%s> fd<%d>: <%s> <<<", recvlen, logicName, fd, recvbuf);
+   char sendbuf[1024] = {0};
+   int sendlen = 0;
+   procLgModule(recvbuf, recvlen, sendbuf, &sendlen);
+   commSend(fd, sendbuf, &sendlen);
+   DEBUG("buf:<%s>", sendbuf);
+}
+
+void test_commProcess(void)
+{
+   addCmdFunction(showFunc, "show");
+   char* content = " echo \"\
+[TcpServer] \n\
+LogicName   = tcpServer1 \n\
+ServerPort  = 8881 \n\
 MaxLink     = 10 \n\"        > commModule.conf";
    system(content);
    commInit("./commModule.conf");
@@ -136,19 +195,10 @@ MaxLink     = 10 \n\"        > commModule.conf";
 
    commConnect("tcpServer1");
 
-   char res[100] = {0};
-   int resSize = 100;
-   getResultFromSystemCall("netstat -an | grep 8880 | awk '{print $6}'", res, &resSize);
-   TEST_ASSERT_EQUAL_STRING("LISTEN", res);
-
-   system("nc 127.0.0.1 8880 &");
-   system("nc 127.0.0.1 8880 &");
-   system("nc 127.0.0.1 8880 &");
-
-   int ret = commSelect("tcpServer1");
-   TEST_ASSERT_EQUAL_INT(1, ret);
-   commConnect("tcpServer1");
-   //system("netstat -an|grep 8880");
+   commSetFunc("tcpServer1", &func0, &func1);
+   while(1) {
+      commProcess();
+   }
 
    system("rm -rf commModule.conf");
 }

@@ -23,10 +23,13 @@ else
 	CLEANUP = rm -f ${OBJS1} ; rm -f $(TARGET1) ; 
 endif
 
-all: clean comm ${TARGET1} default
+all: clean comm lg ${TARGET1} default
 
 comm:
 	@cd .. && make all && cd testCommModule
+
+lg:
+	@cd ../../lgModule/ && make all && cd ../commModule/testCommModule
 
 default:
 	@echo "start test ..."
@@ -35,7 +38,7 @@ default:
 	@echo "finish test ..."
 
 ${TARGET1}:${OBJS1} 
-	@${C_COMPILER} -o ${TARGET1} ${SYMBOLS} ${OBJS1} ../commModule.o ../tools.o ${OBJS_COMM} ${INC_DIRS} ${LIB} 
+	@${C_COMPILER} -o ${TARGET1} ${SYMBOLS} ${OBJS1} ../commModule.o ../tools.o ../../lgModule/lgModule.o ${OBJS_COMM} ${INC_DIRS} ${LIB} 
 
 .c.o:
 	@${C_COMPILER} -o $@ -c ${INC_DIRS} $<

@@ -79,6 +79,10 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
    argv[argc] = (char*)malloc(recvbuf + recvlen - lastpSpace + 1);
    memcpy(argv[argc], lastpSpace, (recvbuf + recvlen - lastpSpace));
    *(argv[argc] + strlen(argv[argc])) = 0;
+   //avoid the last argv tail with '\n'
+   if('\n' == *(argv[argc] + strlen(argv[argc]) - 1)) {
+      *(argv[argc] + strlen(argv[argc]) - 1) = 0;
+   }
    argc++;
 
    int i=0;
@@ -100,10 +104,15 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
       }else {
          printf("can't find func handler, but this will be occur for ever\n");
       }
-   }else {
+   }else if(strlen(argv[0])) {
       term("%s", defaultNoCmdPrompt);
    }
-   strcat(userMsg, "\n");
+   if(0 == strlen(userMsg)) {
+      userMsg[0] = '\n';
+   }
+   else {
+      strcat(userMsg, "\n");
+   }
    strcat(userMsg, defaultPrompt);
 
    //sendbuf = userMsg;
