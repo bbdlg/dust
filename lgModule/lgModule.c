@@ -108,12 +108,13 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
       term("%s", defaultNoCmdPrompt);
    }
    if(0 == strlen(userMsg)) {
-      userMsg[0] = '\n';
+      printf("userMsg is empty\n");
    }
    else {
+      printf("userMsg is not empty, <%s>\n", userMsg);
       strcat(userMsg, "\n");
    }
-   strcat(userMsg, defaultPrompt);
+   memcpy(userMsg+strlen(userMsg), defaultPrompt, strlen(defaultPrompt));
 
    //sendbuf = userMsg;
    memcpy(sendbuf, userMsg, strlen(userMsg));
