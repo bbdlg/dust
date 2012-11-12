@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include "../tools/tools.h"
@@ -22,6 +23,7 @@ enum CommError {
    COMM_LISTEN_FAILED,
    COMM_CONNECT_FAILED,
    COMM_SET_SOCKET_FAILED,
+   commMAXERRNO
 };
 
 /*

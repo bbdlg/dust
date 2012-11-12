@@ -27,7 +27,10 @@ endif
 all: clean ${TARGET1} default
 
 default:
+	@echo "start test ..."
+	@rm -rf test_errModule_Runner.c
 	@$(TARGET1)
+	@echo "finish test ..."
 
 ${TARGET1}:${OBJS1}
 	@${C_COMPILER} -o ${TARGET1} ${SYMBOLS} ${OBJS1} ${INC_DIRS} ${LIB} 

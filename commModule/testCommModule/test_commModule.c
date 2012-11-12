@@ -155,11 +155,11 @@ MaxLink     = 3 \n\"        > commModule.conf";
 void showFunc(int argc, char* argv[])
 {
    if(strcmp("show", argv[0])) {
-      //term("no such command:<%s>", argv[0]);
+      DEBUG("no such command:<%s>", argv[0]);
       return;
    }
-   if(strcmp("map", argv[1])) {
-      //term("no such command:<%s>", argv[1]);
+   if(argv[1] && strcmp("map", argv[1])) {
+      DEBUG("no such command:<%s>", argv[1]);
       return;
    }
    printGLinkMap(NULL);
@@ -178,7 +178,7 @@ void func1(const char* logicName, const int fd, const char* recvbuf, const int r
    int sendlen = 0;
    procLgModule(recvbuf, recvlen, sendbuf, &sendlen);
    commSend(fd, sendbuf, &sendlen);
-   DEBUG("buf:<%s>", sendbuf);
+   DEBUG("buf:<%s>\n", sendbuf);
 }
 
 void test_commProcess(void)
@@ -191,6 +191,7 @@ ServerPort  = 8881 \n\
 MaxLink     = 10 \n\"        > commModule.conf";
    system(content);
    commInit("./commModule.conf");
+   system("rm -rf commModule.conf");
    TEST_ASSERT_EQUAL_INT(4+16+40, getSizeOfGLinkMap());
 
    commConnect("tcpServer1");
@@ -200,6 +201,5 @@ MaxLink     = 10 \n\"        > commModule.conf";
       commProcess();
    }
 
-   system("rm -rf commModule.conf");
 }
 

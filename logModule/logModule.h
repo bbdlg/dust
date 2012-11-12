@@ -30,7 +30,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-#include "tools.h"
+#include "../tools/tools.h"
 
 /* Error in this module */
 enum LogError {

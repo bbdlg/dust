@@ -21,7 +21,7 @@ FILE* _fp_log = NULL;
    _curFileCreatedSeconds = tv.tv_sec;\
    pt=gmtime(&_curFileCreatedSeconds);\
    sprintf(dir, "%04d%02d%02d", (1900+pt->tm_year), (1+pt->tm_mon), pt->tm_mday);\
-   sprintf(file, "%02d%02d%02d%06d.log", pt->tm_hour, pt->tm_min, pt->tm_sec, tv.tv_usec);\
+   sprintf(file, "%02d%02d%02d%06ld.log", pt->tm_hour, pt->tm_min, pt->tm_sec, tv.tv_usec);\
 }while(0)
  
 static char* logErrInfoList[] = {
@@ -55,8 +55,9 @@ int createLogFile(void)
       (_kbSwitchLog == 0)) 
    {
       char res[256] = {0};
+      int len = sizeof(res)/sizeof(res[0]);
       int tmp = 0;
-      readValueFromConf(logConfFile, "rootPathStoreLog", res, sizeof(res)/sizeof(res[0]));
+      readValueFromConf(logConfFile, "rootPathStoreLog", res, &len);
       if(strlen(res) != 0) {
          memcpy(_rootPathStoreLog, res, strlen(res));
       }else{
@@ -64,7 +65,8 @@ int createLogFile(void)
          memcpy(_rootPathStoreLog, defaultRootPathStoreLog, strlen(defaultRootPathStoreLog));
       }
 
-      readValueFromConf(logConfFile, "secondsSwitchLog", res, sizeof(res)/sizeof(res[0]));
+      len = sizeof(res)/sizeof(res[0]);
+      readValueFromConf(logConfFile, "secondsSwitchLog", res, &len);
       if(0 == (tmp=atoi(res))) {
          fprintf(stderr, "can't get value of secondsSwitchLog from %s, use default value<%d>\n", logConfFile, defaultSecondsSwitchLog);
          _secondsSwitchLog = defaultSecondsSwitchLog;
@@ -72,7 +74,8 @@ int createLogFile(void)
          _secondsSwitchLog = tmp;
       }
 
-      readValueFromConf(logConfFile, "kbSwitchLog", res, sizeof(res)/sizeof(res[0]));
+      len = sizeof(res)/sizeof(res[0]);
+      readValueFromConf(logConfFile, "kbSwitchLog", res, &len);
       if(0 == (tmp=atoi(res))) {
          fprintf(stderr, "can't get value of kbSwitchLogfrom %s, use default value<%d>\n", logConfFile, defaultKbSwitchLog);
          _kbSwitchLog = defaultKbSwitchLog;
@@ -148,7 +151,7 @@ int _log(enum LogLevel level, char* function, char* file, int line,  char* msg)
    //switch by size
    long fileLen=ftell(_fp_log);
    if(fileLen >= _kbSwitchLog * 1024) {
-      printf("size of file is %ld, larger than %ld, call createLogFile()\n", fileLen, _kbSwitchLog*1024);
+      printf("size of file is %ld, larger than %d, call createLogFile()\n", fileLen, _kbSwitchLog*1024);
       createLogFile();
    }
 
@@ -159,10 +162,10 @@ int _log(enum LogLevel level, char* function, char* file, int line,  char* msg)
    }
 
    if(level != LOG_DEBUG) {
-      fprintf(_fp_log, "%d %06d %s %s %s %d %s", tv.tv_sec, tv.tv_usec, logLevelStr[level], function, file, line, msg);
+      fprintf(_fp_log, "%ld %06ld %s %s %s %d %s", tv.tv_sec, tv.tv_usec, logLevelStr[level], function, file, line, msg);
       fflush(_fp_log);
    }
-   fprintf(stdout, "%d %06d %s %s %s %d %s", tv.tv_sec, tv.tv_usec, logLevelStr[level], function, file, line, msg);
+   fprintf(stdout, "%ld %06ld %s %s %s %d %s", tv.tv_sec, tv.tv_usec, logLevelStr[level], function, file, line, msg);
 
    return LOG_SUCCESS;
 }

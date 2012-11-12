@@ -12,7 +12,7 @@ const char* lgErrInfo[] = {
    "add too much function",
    "invalid input parameter",
 };
-PoolCmdFunction poolCmdFunction[MAX_CMD_FUNCTION]={0};
+PoolCmdFunction poolCmdFunction[MAX_CMD_FUNCTION] = {{NULL, NULL}};
 
 int initLgModule(const char* welcomeInfo)
 {
@@ -20,6 +20,13 @@ int initLgModule(const char* welcomeInfo)
       return LG_NO_WELCOMEINFO;
    }
    lgWelcomeInfo = welcomeInfo;
+
+   int i=0;
+   for(i=0; i<sizeof(poolCmdFunction)/sizeof(poolCmdFunction[0]); i++) {
+      poolCmdFunction[i].func = NULL;
+      poolCmdFunction[i].cmd  = NULL;
+   }
+
    return LG_SUCCESS;
 }
 
@@ -68,7 +75,7 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
    int argc = 0;
    char* pSpace = NULL;
    char* lastpSpace = (char*)recvbuf;
-   while(pSpace = strstr(lastpSpace, " ")) {
+   while((pSpace = strstr(lastpSpace, " "))) {
       argv[argc] = (char*)malloc(pSpace - lastpSpace + 1);
       memcpy(argv[argc], lastpSpace, pSpace-lastpSpace);
       //*(argv[argc] + strlen(argv[argc])) = 0; //the postion is not '\0', so can not use strlen().

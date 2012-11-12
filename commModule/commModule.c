@@ -328,7 +328,7 @@ int connectTcpServer(int baseOfMap)
 accept:
    while(1) {
       int length = sizeof(clientAddr);
-      int newFd = accept(*((int*)MbasePoolOfFd(baseOfMap) + 0), (struct sockaddr*)&clientAddr, &length);
+      int newFd = accept(*((int*)MbasePoolOfFd(baseOfMap) + 0), (struct sockaddr *)&clientAddr, (unsigned int*)&length);
       if(0 > newFd) {
          //DEBUG("accept failed:<%d>", newFd);
          break;

@@ -12,7 +12,7 @@ else
 	TARGET_EXTENSION=.out
 endif
 TARGET1 = $(TARGET_BASE1)$(TARGET_EXTENSION)
-SRC_FILES1=../../unity/src/unity.c ../tools.c ../logModule.c  ./test_logModule.c ./test_logModule_Runner.c
+SRC_FILES1=../../unity/src/unity.c ./test_logModule.c ./test_logModule_Runner.c
 OBJS1=${SRC_FILES1:.c=.o}
 INC_DIRS=-Isrc -I../../unity/src -I../../unity/extras/fixture/src/ -I../../unity/extras/fixture/test/ -I../ 
 SYMBOLS=-DTEST -fno-const-strings -D_LINUX 
@@ -23,17 +23,24 @@ else
 	CLEANUP = rm -f ${OBJS1} ; rm -f $(TARGET1) ; 
 endif
 
-all: clean ${TARGET1} default
+all: clean log ${TARGET1} default
+
+log:
+	@cd .. && make all && cd testLogModule
 
 default:
+	@echo "start test ..."
+	@rm -rf test_logModule_Runner.c
 	@$(TARGET1)
+	@echo "finish test ..."
 
 ${TARGET1}:${OBJS1}
-	@${C_COMPILER} -o ${TARGET1} ${SYMBOLS} ${OBJS1} ${INC_DIRS} ${LIB} 
+	@${C_COMPILER} -o ${TARGET1} ${SYMBOLS} ${OBJS1} ../logModule.o ../tools.o ${INC_DIRS} ${LIB} 
 
 .c.o:
 	@${C_COMPILER} -o $@ -c ${INC_DIRS} $<
 
 clean:
 	@$(CLEANUP)
+	@cd .. && make clean && cd -
 	

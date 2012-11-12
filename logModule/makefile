@@ -1,5 +1,5 @@
 CC=gcc
-SRCS=./lgModule.c 
+SRCS=./logModule.c ../tools/tools.c
 OBJS=$(patsubst %.c,%.o,%(SRCS))
 
 all:$(OBJS)
