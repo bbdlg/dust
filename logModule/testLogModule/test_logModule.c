@@ -228,7 +228,7 @@ void test_logErrInfo_invalidInputPara(void)
 void test_logErrInfo_unknowError(void)
 {
    TEST_ASSERT_EQUAL_STRING("unknown error", logErrInfo(-1));
-   TEST_ASSERT_EQUAL_STRING("unknown error", logErrInfo(LOG_UNKNOWN_ERROR));
-   TEST_ASSERT_EQUAL_STRING("unknown error", logErrInfo(LOG_UNKNOWN_ERROR+1));
+   TEST_ASSERT_EQUAL_STRING("unknown error", logErrInfo(logMAXERRNO));
+   TEST_ASSERT_EQUAL_STRING("unknown error", logErrInfo(logMAXERRNO+1));
 }
 

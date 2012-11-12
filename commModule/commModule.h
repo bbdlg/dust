@@ -13,7 +13,7 @@
 /*
  * Error in this module
  * */
-enum CommError {
+enum commErrNo {
    COMM_SUCCESS = 0,
    COMM_INVALID_LOGICNAME,
    COMM_INVALID_MAPTYPE,

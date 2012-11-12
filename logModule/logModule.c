@@ -24,23 +24,11 @@ FILE* _fp_log = NULL;
    sprintf(file, "%02d%02d%02d%06ld.log", pt->tm_hour, pt->tm_min, pt->tm_sec, tv.tv_usec);\
 }while(0)
  
-static char* logErrInfoList[] = {
+const char* logErrInfo[logMAXERRNO] = {
    "success",
    "invalid input parameter",
    "file pointer is null",
-   "unknown error"
 };
-
-const char* logErrInfo(int logErrNo)
-{
-   if(   (logErrNo < LOG_SUCCESS) || 
-         (logErrNo >= LOG_UNKNOWN_ERROR) ) {
-      logErrNo = LOG_UNKNOWN_ERROR;
-   }
-   return logErrInfoList[logErrNo];
-   //#define joinStr(x,y) x##y
-   //return joinStr(logErr,InfoList)[logErrNo];
-}
 
 int createLogFile(void)
 {

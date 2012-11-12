@@ -5,6 +5,18 @@ char gRecvBuf[MAX_LEN_BUF];
 struct timeval timeOutOfSelect = {0, 100000}; //default timeout: 100ms
 const char* defaultConfigFilePath = "./commModule.conf";
 
+const char* commErrInfo[commMAXERRNO] = {
+   "success",
+   "invalid logic name",
+   "invalid map type",
+   "invalid port",
+   "create socket file descripter failed",
+   "bind fd failed",
+   "listen fd failed",
+   "connect fd failed",
+   "set socket option failed",
+};
+
 int setSocketNonBlock(int nSocketFd)
 {
    int nOpts;

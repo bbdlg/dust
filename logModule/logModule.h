@@ -33,13 +33,12 @@
 #include "../tools/tools.h"
 
 /* Error in this module */
-enum LogError {
+enum logErrNo {
    LOG_SUCCESS = 0,
    LOG_INVALID_INPUT_PARA,
    LOG_FP_IS_NULL,
-   LOG_UNKNOWN_ERROR,
+   logMAXERRNO
 }; 
-extern const char* logErrInfo(int logErrNo);
 
 /* Call initLog() before call log to record your log. 
  * if you didn't do this, the log will be record into "/tmp/log" as default.

@@ -21,7 +21,7 @@
  *          //..., 
  *          modulenameMAXERRNO };
  *    3、需在其他模块源文件中定义<模块内部错误信息>： 
- *       char* modulenameErrInfo[modulenameMAXERRNO] = { 
+ *       const char* modulenameErrInfo[modulenameMAXERRNO] = { 
  *          "error a", 
  *          "error b", 
  *          "error c", 
@@ -32,7 +32,7 @@
  * 示例：
  *    假设模块名称为log，在模块内部定义了如下的错误代码及错误信息：
  *       enum logErrNo { EA=0, EB, EC, logMAXERRNO };
- *       char* logErrInfo[] = {"error a", "error b", "error c" };
+ *       const char* logErrInfo[] = {"error a", "error b", "error c" };
  *    我们可以通过如下语句获得错误代码为‘EB’的错误信息‘error b’：
  *       moduleErrInfo(log, EB);
  *

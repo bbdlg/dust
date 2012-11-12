@@ -38,5 +38,6 @@ ${TARGET1}:${OBJS1}
 	@${C_COMPILER} -o $@ -c ${INC_DIRS} $<
 
 clean:
+	@cd ../ && make clean && cd -
 	@$(CLEANUP)
 	

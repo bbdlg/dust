@@ -197,6 +197,8 @@ MaxLink     = 10 \n\"        > commModule.conf";
    commConnect("tcpServer1");
 
    commSetFunc("tcpServer1", &func0, &func1);
+
+   printf("press ctrl+C to end this test\n");
    while(1) {
       commProcess();
    }
