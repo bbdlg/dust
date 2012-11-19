@@ -40,6 +40,8 @@ enum logErrNo {
    logMAXERRNO
 }; 
 
+extern int logInit(const char* configFilePath);
+
 /* Call initLog() before call log to record your log. 
  * if you didn't do this, the log will be record into "/tmp/log" as default.
  * rootPathStoreLog appoints path to record log files, like "/tmp/log" or "/tmp/log/".

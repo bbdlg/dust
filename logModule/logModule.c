@@ -30,6 +30,12 @@ const char* logErrInfo[logMAXERRNO] = {
    "file pointer is null",
 };
 
+int logInit(const char* configFilePath)
+{
+   logConfFile = configFilePath;
+   return LOG_SUCCESS;
+}
+
 int createLogFile(void)
 {
    if(_fp_log) {
