@@ -28,12 +28,12 @@ enum toolsErrNo {
    toolsMAXERRNO
 };
 
-#define ERRORTIP do{ \
+#define ERRORTIP(format, ...) do{ \
    printf("error: "format"\n", ##__VA_ARGS__); \
    fflush(stdout); \
    exit(1); \
 }while(0)
-#define WARNINGTIP do{ \
+#define WARNINGTIP(format, ...) do{ \
    printf("warning: "format"\n", ##__VA_ARGS__); \
    fflush(stdout); \
 }while(0)

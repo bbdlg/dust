@@ -39,6 +39,7 @@ enum logErrNo {
    LOG_FP_IS_NULL,
    logMAXERRNO
 }; 
+extern const char* logErrInfo[logMAXERRNO];
 
 extern int logInit(const char* configFilePath);
 

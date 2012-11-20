@@ -25,6 +25,7 @@ enum commErrNo {
    COMM_SET_SOCKET_FAILED,
    commMAXERRNO
 };
+extern const char* commErrInfo[commMAXERRNO];
 
 /*
  * type of logicname

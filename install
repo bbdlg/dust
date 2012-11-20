@@ -2,12 +2,17 @@
 
 DEST_DIR=`dirname \`pwd\``/destdir
 
-cd ./build/ && aclocal && autoconf && autoheader && automake --add-missing && ./configure && make && make clean && cd -
+cd ./build/ && aclocal && autoconf && autoheader && automake --add-missing && ./configure && make && cd -
+
+#debug
+#cp ./build/libdust.a ./
+#exit 0
 
 if [ -d ${DEST_DIR} ]; then
    mv ${DEST_DIR} ${DEST_DIR}`date +%Y-%m-%d_%H_%M_%S`_bak
 fi
 mkdir ${DEST_DIR} ${DEST_DIR}/include/ ${DEST_DIR}/lib/ ${DEST_DIR}/doc ${DEST_DIR}/bin
+mkdir ${DEST_DIR}/conf ${DEST_DIR}/log ${DEST_DIR}/data 
 
 cp ./commModule/commModule.h  ${DEST_DIR}/include
 cp ./errModule/errModule.h    ${DEST_DIR}/include
@@ -19,6 +24,10 @@ cp ./logModule/seelog.sh      ${DEST_DIR}/bin
 cp ./lgModule/lp.sh           ${DEST_DIR}/bin
 
 cp ./build/libdust.a          ${DEST_DIR}/lib
+
+cp ./dust.conf                ${DEST_DIR}/conf
+
+cd ${DEST_DIR}/lib && gcc -o main libdust.a && mv main ../bin && cd -
 
 echo "You can find product at ${DEST_DIR}"
 

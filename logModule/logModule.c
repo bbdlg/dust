@@ -32,6 +32,11 @@ const char* logErrInfo[logMAXERRNO] = {
 
 int logInit(const char* configFilePath)
 {
+   if((NULL == configFilePath) || access(configFilePath, F_OK)) {
+      printf("%s\n", configFilePath);
+      printf("access return %d\n", access(configFilePath, F_OK));
+      return LOG_INVALID_INPUT_PARA;
+   }
    logConfFile = configFilePath;
    return LOG_SUCCESS;
 }
@@ -51,7 +56,7 @@ int createLogFile(void)
       char res[256] = {0};
       int len = sizeof(res)/sizeof(res[0]);
       int tmp = 0;
-      readValueFromConf(logConfFile, "rootPathStoreLog", res, &len);
+      readValueFromConf_ext(logConfFile, 1, "LogModule", "rootPathStoreLog", res, &len);
       if(strlen(res) != 0) {
          memcpy(_rootPathStoreLog, res, strlen(res));
       }else{
@@ -60,7 +65,7 @@ int createLogFile(void)
       }
 
       len = sizeof(res)/sizeof(res[0]);
-      readValueFromConf(logConfFile, "secondsSwitchLog", res, &len);
+      readValueFromConf_ext(logConfFile, 1, "LogModule", "secondsSwitchLog", res, &len);
       if(0 == (tmp=atoi(res))) {
          fprintf(stderr, "can't get value of secondsSwitchLog from %s, use default value<%d>\n", logConfFile, defaultSecondsSwitchLog);
          _secondsSwitchLog = defaultSecondsSwitchLog;
@@ -69,7 +74,7 @@ int createLogFile(void)
       }
 
       len = sizeof(res)/sizeof(res[0]);
-      readValueFromConf(logConfFile, "kbSwitchLog", res, &len);
+      readValueFromConf_ext(logConfFile, 1, "LogModule", "kbSwitchLog", res, &len);
       if(0 == (tmp=atoi(res))) {
          fprintf(stderr, "can't get value of kbSwitchLogfrom %s, use default value<%d>\n", logConfFile, defaultKbSwitchLog);
          _kbSwitchLog = defaultKbSwitchLog;
@@ -138,7 +143,7 @@ int _log(enum LogLevel level, char* function, char* file, int line,  char* msg)
 
    //case not init _fp_log
    if(NULL == _fp_log) {
-      printf("_fp_log is null, call createLogFile()\n");
+      //printf("_fp_log is null, call createLogFile()\n");
       createLogFile();
    }
 

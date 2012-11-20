@@ -12,8 +12,6 @@
 
 typedef void ConfAnalyzeFunc(const char* pathConf);
 
-#define ERRORTIP(...) do{ 
-
 /***************** 全局变量 *********************/
 
 /* 应用程序版本信息，用户实现 */
@@ -24,12 +22,12 @@ extern char* appVerInfo;
 extern void initAll(void);
 
 /* 该函数将在主循环中循环被调用，用户实现 */
-extern void checkEvent(const timeval curTimeval);
+extern void checkEvent(const struct timeval curTimeval);
 
 /* 注册配置文件解析函数，可多次调用 */
 extern int registerCommFunc(ConfAnalyzeFunc* func);
 /* 注册数据处理回调函数，可多次调用 */
-extern int registerCommFunc(const char* runPara, const char* logicName, RegisterFunc* registerFunc, DataProcFunc* dataProcFunc);
+extern int registerDataFunc(const char* runPara, const char* logicName, RegisterFunc* registerFunc, DataProcFunc* dataProcFunc);
 /* 注册外部命令响应函数，可多次调用 */
 extern int addCmdFunction(CmdFunction function, const char* name);
 

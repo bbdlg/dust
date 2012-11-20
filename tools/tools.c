@@ -161,6 +161,15 @@ int getValueOfKey(const char* section, const char* key, char* res, int* size)
       pos++;
    }
 
+   if(('"' == res[0]) && ('"' == res[strlen(res)-1])) {
+      int i=0;
+      for(i=0; i<*size; i++)
+      {
+         res[i] = res[i+1];
+      }
+      res[*size - 2] = 0;
+   }
+
    return TOOLS_SUCCESS;
 }
 

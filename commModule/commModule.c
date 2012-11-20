@@ -381,17 +381,24 @@ accept:
 
 int commInit(const char* configFilePath)
 {
+   int ret;
    const char* _configFilePath = (NULL==configFilePath) ? defaultConfigFilePath : configFilePath;
    gLinkMap = malloc(sizeof(int));
    *(int*)MsumOfMap = 0;
 
    /* load config info */
 #ifdef TCP_CLIENT_MODE
-   initTcpClientInfo(_configFilePath);
+   ret = initTcpClientInfo(_configFilePath);
+   if(ret) {
+      return ret;
+   }
 #endif
 
 #ifdef TCP_SERVER_MODE
-   initTcpServerInfo(_configFilePath);
+   ret = initTcpServerInfo(_configFilePath);
+   if(ret) {
+      return ret;
+   }
 #endif
 #ifdef UDP_MODE
    //do something

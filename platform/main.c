@@ -1,6 +1,6 @@
-#include <main.h>
+#include "main.h"
 
-char* homePath = getenv("DUSTHOME");
+char* homePath = NULL;
 
 void procLpMsg(const char* logicName, const int fd, const char* recvbuf, const int recvlen)
 {
@@ -15,50 +15,58 @@ int main(int argc, char** argv)
    int ret,i;
    char tmp[256] = {0};
    struct timeval curTimeval;
+   homePath = getenv("DUSTHOME");
+
+   //init logModule
+   memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
+   sprintf(tmp, "%s/conf/dust.conf", homePath);
+   ret = logInit(tmp);
+   if(ret) {
+      ERRORTIP("logInit %s", moduleErrInfo(log, ret));
+   }
+   log(LOG_INFO, "<%s> start running!", appVerInfo);
 
    //check running environment
    if(NULL == appVerInfo) {
-      WARNINGTIP("it seems that appVerInfo is not set");
+      log(LOG_WARNING, "it seems that appVerInfo is not set");
    }
    if(NULL == homePath) {
-      ERRORTIP("DUSTHOME is not set");
+      log(LOG_ERROR, "DUSTHOME is not set");
+      exit(1);
    }
    if(strlen(homePath) > 200) {
-      ERRORTIP("$DUSTHOME is too long");
+      log(LOG_ERROR, "$DUSTHOME is too long");
+      exit(1);
    }
    const char* subdir[] = {"", "bin", "conf", "log", "data"};
    for(i=0; i<sizeof(subdir)/sizeof(subdir[0]); i++) {
       memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
       sprintf(tmp, "%s/%s", homePath, subdir[i]);
       if(access(tmp, F_OK)) {
-         ERRORTIP("%s does not exist, try mkdir %s", tmp);
+         log(LOG_ERROR, "%s does not exist, try mkdir %s", tmp);
+         exit(1);
       }
    }
    
-   //init logModule
-   memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
-   sprintf(tmp, "%s/conf/dust.conf", homePath);
-   ret = logInit(tmp);
-   if(ret) {
-      ERRORTIP("%s", moduleErrInfo(comm, ret));
-   }
-
    //init commModule
    memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
    sprintf(tmp, "%s/conf/dust.conf", homePath);
    ret = commInit(tmp);
    if(ret) {
-      ERRORTIP("%s", moduleErrInfo(comm, ret));
+      log(LOG_ERROR, "commInit %s", moduleErrInfo(comm, ret));
+      exit(1);
    }
    ret = commConnect(NULL);
    if(ret) {
-      ERRORTIP("%s", moduleErrInfo(comm, ret));
+      log(LOG_ERROR, "commConnect %s", moduleErrInfo(comm, ret));
+      exit(1);
    }
 
    //init lgModule
-   ret = commSetFunc("dustLogModule", &welcomeLp, &procLpMsg);
+   ret = commSetFunc("dustLgModule", (RegisterFunc*)&welcomeLp, &procLpMsg);
    if(ret) {
-      ERRORTIP("it seems that logicName<dustLogModule> is not set");
+      log(LOG_ERROR, "it seems that logicName<dustLgModule> is not set");
+      exit(1);
    }
  
    //init every function
@@ -74,5 +82,14 @@ int main(int argc, char** argv)
    return 0;
 }
       
+char* appVerInfo = "hallo, bbdlg";
+void initAll(void)
+{
+   printf("welcome into initAll()\n");
+}
+void checkEvent(const struct timeval curTimeval)
+{
+   printf("welcome into checkEvent()\n");
+}
    
 
