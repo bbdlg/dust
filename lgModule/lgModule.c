@@ -2,7 +2,7 @@
 
 static const char* lgWelcomeInfo = "WELCOME TO LGMODULE";
 static const char* defaultNoCmdPrompt = "no such command";
-static char* defaultPrompt = "lpsay: ";
+static char* defaultPrompt = "lpsays>> ";
 char userMsg[MAX_LEN_CMD_PROMPT + MAX_LEN_USER_MSG];
 
 const char* lgErrInfo[] = {
@@ -70,12 +70,15 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
    if((NULL == recvbuf) || (0 >= recvlen)) {
       return LG_INVALID_PARA;
    }
-
+   
    char* argv[MAX_SUM_CMD] = {0};
    int argc = 0;
    char* pSpace = NULL;
    char* lastpSpace = (char*)recvbuf;
    while((pSpace = strstr(lastpSpace, " "))) {
+      if((pSpace - lastpSpace) > recvlen) {
+         break;
+      }
       argv[argc] = (char*)malloc(pSpace - lastpSpace + 1);
       memcpy(argv[argc], lastpSpace, pSpace-lastpSpace);
       //*(argv[argc] + strlen(argv[argc])) = 0; //the postion is not '\0', so can not use strlen().
@@ -85,7 +88,7 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
    }
    argv[argc] = (char*)malloc(recvbuf + recvlen - lastpSpace + 1);
    memcpy(argv[argc], lastpSpace, (recvbuf + recvlen - lastpSpace));
-   *(argv[argc] + strlen(argv[argc])) = 0;
+   *(argv[argc] + (recvbuf + recvlen - lastpSpace)) = 0;
    //avoid the last argv tail with '\n'
    if('\n' == *(argv[argc] + strlen(argv[argc]) - 1)) {
       *(argv[argc] + strlen(argv[argc]) - 1) = 0;
@@ -115,10 +118,10 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
       term("%s", defaultNoCmdPrompt);
    }
    if(0 == strlen(userMsg)) {
-      printf("userMsg is empty\n");
+      //printf("userMsg is empty\n");
    }
    else {
-      printf("userMsg is not empty, <%s>\n", userMsg);
+      //printf("userMsg is not empty, <%s>\n", userMsg);
       strcat(userMsg, "\n");
    }
    memcpy(userMsg+strlen(userMsg), defaultPrompt, strlen(defaultPrompt));
@@ -133,5 +136,65 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
    return LG_SUCCESS;
 }
 
+void lgCmdFuncHelp(int argc, char* argv[])
+{
+   int i=0;
+   term("Enter the following commands:");
+   for(i=0; i<MAX_CMD_FUNCTION; i++) {
+      if(poolCmdFunction[i].cmd) {
+         if(0 == i%3) term("\n");
+         term("%+10s", poolCmdFunction[i].cmd);
+      }
+   }
+   return;
+}
+
+void lgCmdFuncUnix(int argc, char* argv[])
+{
+   if(1 == argc) {
+      term("Usage: unix [shell command like 'ls']");
+   }
+   char cmd[200] = {0};
+   int i=0;
+   for(i=1; i<argc; i++) {
+      if((strlen(cmd)+strlen(argv[i])) > sizeof(cmd)/sizeof(cmd[0])) {
+         term("too long unix cmd");
+         return;
+      }
+      sprintf(cmd+strlen(cmd), "%s ", argv[i]);
+   }
+      
+   char recv[1024] = {0};
+   int size = sizeof(recv)/sizeof(recv[0]);
+   printf("cmd is <%s>\n", cmd);
+   getResultFromSystemCall(cmd, recv, &size);
+   if(size > 0) {
+      term("%s", recv);
+   }
+   return;
+}
+
+void lgCmdFuncWelcome(int argc, char* argv[])
+{
+   term("%s", lgWelcomeInfo);
+   return;
+}
+
+void lgCmdFuncAbout(int argc, char* argv[])
+{
+   term("Author <bbdlg>\nWrite this module for my dear @quan-quan007");
+   return;
+}
+
+int addDefaultCmdFunction(void)
+{
+   addCmdFunction(&lgCmdFuncHelp,      "help");
+   addCmdFunction(&lgCmdFuncUnix,      "unix");
+   addCmdFunction(&lgCmdFuncWelcome,   "welcome");
+   addCmdFunction(&lgCmdFuncAbout,     "about");
+   //addCmdFunction(&lgCmdFuncVersion,   "version");
+
+   return LG_SUCCESS;
+}
 
 

@@ -9,6 +9,10 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include "../tools/tools.h"
+#ifdef LOG
+   #include "../logModule/logModule.h"
+   #include "../errModule/errModule.h"
+#endif
 
 /*
  * Error in this module
@@ -31,9 +35,15 @@ extern const char* commErrInfo[commMAXERRNO];
  * type of logicname
  * */
 enum SortOfCommunication {
-   TCPCLIENT = 0,
+#ifdef TCP_CLIENT_MODE
+   TCPCLIENT,
+#endif
+#ifdef TCP_SERVER_MODE
    TCPSERVER,
+#endif
+#ifdef UDP_MODE
    UDP,
+#endif
    //SERIAL,
    //CAN,
    UNKNOWN_TYPE
@@ -133,7 +143,7 @@ typedef struct {
 }TcpClientInfoObject;
 #endif
 
-#ifdef TCP_CLIENT_MODE
+#ifdef TCP_SERVER_MODE
 typedef struct {
    RegisterFunc* registerFunc;
    DataProcFunc* dataProcFunc;

@@ -6,7 +6,7 @@ const int   defaultSecondsSwitchLog = 60;
 const int   defaultKbSwitchLog = 1024;
 const char* formatLogDir = "yyyyMMdd";
 const char* formatLogFile = "hhmmssuuuuuu.log";
-const char* logLevelStr[] = {"DEBUG", "INFO", "WARNING", "ERROR"};
+const char* logLevelStr[] = {"DEBUG  ", "INFO   ", "WARNING", "ERROR  "};
 
 char _rootPathStoreLog[256] = {0};
 int _secondsSwitchLog = 0;
@@ -161,10 +161,11 @@ int _log(enum LogLevel level, char* function, char* file, int line,  char* msg)
    }
 
    if(level != LOG_DEBUG) {
-      fprintf(_fp_log, "%ld %06ld %s %s %s %d %s", tv.tv_sec, tv.tv_usec, logLevelStr[level], function, file, line, msg);
+      fprintf(_fp_log, "%ld %06ld %s %s %s %d %s\n", tv.tv_sec, tv.tv_usec, logLevelStr[level], function, file, line, msg);
       fflush(_fp_log);
    }
-   fprintf(stdout, "%ld %06ld %s %s %s %d %s", tv.tv_sec, tv.tv_usec, logLevelStr[level], function, file, line, msg);
+   //fprintf(stdout, "%ld %06ld %s %s %s %s %d\n", tv.tv_sec, tv.tv_usec, logLevelStr[level], msg, function, file, line);
+   fprintf(stdout, "%ld %06ld %s %s\n", tv.tv_sec, tv.tv_usec, logLevelStr[level], msg);
 
    return LOG_SUCCESS;
 }

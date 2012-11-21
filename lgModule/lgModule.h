@@ -24,8 +24,9 @@
 #include <stdio.h>
 #include <memory.h>
 #include <malloc.h>
+#include "../tools/tools.h"
 
-#define MAX_CMD_FUNCTION   3 
+#define MAX_CMD_FUNCTION   30
 #define MAX_LEN_CMD_PROMPT 24
 #define MAX_LEN_USER_MSG   1000
 #define MAX_SUM_CMD        100
@@ -57,6 +58,7 @@ extern int addCmdFunction(CmdFunction function, const char* name);
 ********************************************************************************/
 extern int welcomeLp(char* sendbuf, int* sendlen);
 extern int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sendlen);
+extern int addDefaultCmdFunction(void);
 
 #endif
 

@@ -63,6 +63,8 @@ int main(int argc, char** argv)
    }
 
    //init lgModule
+   initLgModule("*** HUANYING WO DE QINQINBAO ***\n  Enter 'help' to get help msg~\n-----------------------------------");
+   addDefaultCmdFunction();
    ret = commSetFunc("dustLgModule", (RegisterFunc*)&welcomeLp, &procLpMsg);
    if(ret) {
       log(LOG_ERROR, "it seems that logicName<dustLgModule> is not set");
@@ -85,11 +87,12 @@ int main(int argc, char** argv)
 char* appVerInfo = "hallo, bbdlg";
 void initAll(void)
 {
-   printf("welcome into initAll()\n");
+   //printf("welcome into initAll()\n");
 }
 void checkEvent(const struct timeval curTimeval)
 {
-   printf("welcome into checkEvent()\n");
+   //printf("welcome into checkEvent()\n");
+   //printf("cur time: %ld-%ld\n", curTimeval.tv_sec, curTimeval.tv_usec);
 }
    
 

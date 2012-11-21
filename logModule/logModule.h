@@ -31,6 +31,9 @@
 #include <sys/types.h>
 #include <errno.h>
 #include "../tools/tools.h"
+#ifdef LOG
+   #include "../errModule/errModule.h"
+#endif
 
 /* Error in this module */
 enum logErrNo {
@@ -68,7 +71,7 @@ extern const char* logLevelStr[];
 #define MAX_LEN_MSG   1000
 #define log(level,format,...)  do{ \
    char _msg[MAX_LEN_MSG] = {0}; \
-   sprintf(_msg, format"\n", ##__VA_ARGS__); \
+   sprintf(_msg, format, ##__VA_ARGS__); \
    _log(level, __FUNCTION__, __FILE__, __LINE__, _msg); \
 }while(0)
 

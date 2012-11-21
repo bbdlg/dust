@@ -335,7 +335,11 @@ int connectTcpServer(int baseOfMap)
 
    *((int*)MbasePoolOfFd(baseOfMap) + 0) = sockfd;
    (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
+#ifdef LOG
+   log(LOG_INFO, "listen port: %d, fd: %d, logicName: %s", (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, sockfd, *(char**)MpLogicName(baseOfMap));
+#else
    DEBUG("listen sockfd: <%d>", sockfd);
+#endif
 
 accept:
    while(1) {
@@ -353,26 +357,34 @@ accept:
       for(i=1; i<*(int*)MsumOfFd(baseOfMap); i++) {
          if(fdInitValue == *((int*)MbasePoolOfFd(baseOfMap) + i)) {
             *((int*)MbasePoolOfFd(baseOfMap) + i) = newFd;
-            DEBUG("newFd is fill in gLinkMap<%d>", newFd);
+            //DEBUG("newFd is fill in gLinkMap<%d>", newFd);
             break;
          }
       }
-      printGLinkMap(NULL);
+      //printGLinkMap(NULL);
       if(i == *(int*)MsumOfFd(baseOfMap)) {
-         DEBUG("can't find space to fill newFd, maybe there's too many links in serverPort:<%d>", (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort);
+#ifdef LOG
+         log(LOG_WARNING, "Too many links in serverPort<%d>, logicName<%s>, max<%d> links", (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, *(char**)MpLogicName(baseOfMap), *(int*)MsumOfFd(baseOfMap));
+#else
+         DEBUG("Too many links in serverPort<%d>, logicName<%s>, max<%d> links", (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, *(char**)MpLogicName(baseOfMap), *(int*)MsumOfFd(baseOfMap));
+#endif
          close(newFd);
          break;
       }
 
+#ifdef LOG
+         log(LOG_INFO, "new fd<%d> connect to port<%d>,logicName<%s>", newFd, (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, *(char**)MpLogicName(baseOfMap));
+#endif
+
       //call registerFunc
       if((*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->registerFunc) {
-         DEBUG("call registerFunc");
          int sendlen = MAX_LEN_BUF;
          memset(gRecvBuf, 0, MAX_LEN_BUF);
          (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->registerFunc(gRecvBuf, &sendlen); //borrow gRecvBuf
-         DEBUG("len is %d", sendlen);
          commSend(newFd, gRecvBuf, &sendlen);
-         DEBUG("send %d bytes", sendlen);
+#ifdef LOG
+         log(LOG_INFO, "call registerFunc to process fd<%d> of logicName<%s>", newFd, *(char**)MpLogicName(baseOfMap));
+#endif
       }
    }
    return COMM_SUCCESS;
@@ -419,10 +431,19 @@ int commRecv(int* fd, char* recvBuf, int* recvLen)
    if(0 == *recvLen) {
       if(errno != EINTR) {
          //now errno should be 0.
+#ifdef LOG
+         log(LOG_WARNING, "fd<%d> disconnect, now close it!", *fd);
+#endif
          close(*fd);
          *fd = fdInitValue;
       }
    }
+
+#ifdef LOG
+   if(*recvLen > 0) {
+      log(LOG_INFO, "recv %d bytes via fd<%d>", *recvLen, *fd);
+   }
+#endif
 
    return COMM_SUCCESS;
 }
@@ -434,6 +455,10 @@ int commSend(int fd, const char* sendBuf, int* sendLen)
    }
 
    *sendLen = send(fd, sendBuf, *sendLen, MSG_DONTWAIT);
+
+#ifdef LOG
+   log(LOG_INFO, "send %d bytes via fd<%d>", *sendLen, fd);
+#endif
 
    return COMM_SUCCESS;
 }
@@ -463,6 +488,7 @@ int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd)
 int commConnect(const char* logicName)
 {
    int _sumOfMap = *(int*)gLinkMap;
+   int ret = 0;
    int _curMapStart = sizeof(int);
    while(_sumOfMap--) {
       if((logicName) && (0 != strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
@@ -483,10 +509,20 @@ int commConnect(const char* logicName)
 #endif
       };
       if(COMM_INVALID_MAPTYPE == checkMapType(*(int*)MtypeOfMap(_curMapStart))) {
+#ifdef LOG
+         log(LOG_WARNING, "unknow map type:<%d>", *(int*)MtypeOfMap(_curMapStart));
+#else
          DEBUG("unknow map type:<%d>", *(int*)MtypeOfMap(_curMapStart));
+#endif
       }
       else {
-         connectFunc[*(int*)MtypeOfMap(_curMapStart)](_curMapStart);
+         ret = connectFunc[*(int*)MtypeOfMap(_curMapStart)](_curMapStart);
+         if(ret) {
+#ifdef LOG
+            log(LOG_ERROR, "connect logicName<%s> failed! reason: %s", *(char**)MpLogicName(_curMapStart), moduleErrInfo(log, ret));
+#endif
+            return ret;
+         }
       }
       _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
    }
@@ -533,6 +569,9 @@ int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataProcFunc*
          cur += 4*(4 + *(int*)MsumOfFd(cur));
          continue;
       }
+#ifdef LOG
+      log(LOG_INFO, "register process function of logicName<%s>", logicName);
+#endif
 #ifdef TCP_SERVER_MODE
       (*(TcpServerInfoObject**)MpMapLinkInfo(cur))->registerFunc = registerFunc;
       (*(TcpServerInfoObject**)MpMapLinkInfo(cur))->dataProcFunc = dataProcFunc;

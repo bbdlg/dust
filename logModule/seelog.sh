@@ -101,6 +101,11 @@ fi
 
 # delete first '|'
 SORT=${SORT#*|}
+if [ -z "$FILEDIR" -o -z "$FILE" ]; then
+   help
+   exit 5
+fi
+
 echo "how is $HOW, filedir is <$FILEDIR> file is <$FILE>, sort is $SORT"
 
 if [ $HOW = "trace" ]; then
