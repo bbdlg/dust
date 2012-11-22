@@ -16,6 +16,9 @@ int main(int argc, char** argv)
    char tmp[256] = {0};
    struct timeval curTimeval;
    homePath = getenv("DUSTHOME");
+   if(NULL == homePath) {
+      ERRORTIP("$DUSTHOME is null, try export...");
+   }
 
    //init logModule
    memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
@@ -24,10 +27,10 @@ int main(int argc, char** argv)
    if(ret) {
       ERRORTIP("logInit %s", moduleErrInfo(log, ret));
    }
-   log(LOG_INFO, "<%s> start running!", appVerInfo);
+   log(LOG_INFO, "App<%s> start running!", moduleVersion(app));
 
    //check running environment
-   if(NULL == appVerInfo) {
+   if(NULL == moduleVersion(app)) {
       log(LOG_WARNING, "it seems that appVerInfo is not set");
    }
    if(NULL == homePath) {
@@ -83,16 +86,4 @@ int main(int argc, char** argv)
 
    return 0;
 }
-      
-char* appVerInfo = "hallo, bbdlg";
-void initAll(void)
-{
-   //printf("welcome into initAll()\n");
-}
-void checkEvent(const struct timeval curTimeval)
-{
-   //printf("welcome into checkEvent()\n");
-   //printf("cur time: %ld-%ld\n", curTimeval.tv_sec, curTimeval.tv_usec);
-}
-   
 

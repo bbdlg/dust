@@ -1,5 +1,9 @@
 #include "logModule.h"
 
+const char* logVersion = "1.0.0";
+const char* logCompileDate = __DATE__;
+const char* logCompileTime = __TIME__;
+
 const char* logConfFile = "../logMoudle/logModule.conf";
 const char* defaultRootPathStoreLog = "/tmp/log";
 const int   defaultSecondsSwitchLog = 60;
@@ -33,8 +37,7 @@ const char* logErrInfo[logMAXERRNO] = {
 int logInit(const char* configFilePath)
 {
    if((NULL == configFilePath) || access(configFilePath, F_OK)) {
-      printf("%s\n", configFilePath);
-      printf("access return %d\n", access(configFilePath, F_OK));
+      printf("config file path is <%s>, access return %d\n", configFilePath, access(configFilePath, F_OK));
       return LOG_INVALID_INPUT_PARA;
    }
    logConfFile = configFilePath;
@@ -83,14 +86,11 @@ int createLogFile(void)
       }
    }
 
-   //printf("_rootPathStoreLog=<%s>, _secondsSwitchLog=<%d>, _kbSwitchLog=<%d>\n", _rootPathStoreLog, _secondsSwitchLog, _kbSwitchLog);
-
    char cmd[100]={0};
    sprintf(cmd, "test -d %s", _rootPathStoreLog);
    pid_t status = system(cmd);
    if(WEXITSTATUS(status) == 1)  //_rootPathStoreLog is not a dir
    {
-      //printf("%s is not a valid directory, now create it!\n", _rootPathStoreLog);
       sprintf(cmd, "mkdir -p %s", _rootPathStoreLog);
       system(cmd);
    }
@@ -102,7 +102,6 @@ int createLogFile(void)
    status = system(cmd);
    if(WEXITSTATUS(status) == 1)  // dir is not a dir
    {
-      //printf("%s/%s is not a valid directory, now create it!\n", _rootPathStoreLog, dir);
       sprintf(cmd, "mkdir %s/%s", _rootPathStoreLog, dir);
       system(cmd);
    }
@@ -143,7 +142,6 @@ int _log(enum LogLevel level, char* function, char* file, int line,  char* msg)
 
    //case not init _fp_log
    if(NULL == _fp_log) {
-      //printf("_fp_log is null, call createLogFile()\n");
       createLogFile();
    }
 

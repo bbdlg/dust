@@ -8,11 +8,15 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/select.h>
-#include "../tools/tools.h"
+#include "tools.h"
 #ifdef LOG
-   #include "../logModule/logModule.h"
-   #include "../errModule/errModule.h"
+   #include "logModule.h"
+   #include "errModule.h"
 #endif
+
+extern const char* commVersion;
+extern const char* commCompileDate;
+extern const char* commCompileTime;
 
 /*
  * Error in this module

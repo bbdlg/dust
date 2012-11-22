@@ -1,5 +1,9 @@
 #include "lgModule.h"
 
+const char* lgVersion = "1.0.0";
+const char* lgCompileDate = __DATE__;
+const char* lgCompileTime = __TIME__;
+
 static const char* lgWelcomeInfo = "WELCOME TO LGMODULE";
 static const char* defaultNoCmdPrompt = "no such command";
 static char* defaultPrompt = "lpsays>> ";
@@ -117,12 +121,9 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
    }else if(strlen(argv[0])) {
       term("%s", defaultNoCmdPrompt);
    }
-   if(0 == strlen(userMsg)) {
-      //printf("userMsg is empty\n");
-   }
-   else {
-      //printf("userMsg is not empty, <%s>\n", userMsg);
-      strcat(userMsg, "\n");
+
+   if(strlen(userMsg)) {
+      strcat(userMsg, "\n\n");
    }
    memcpy(userMsg+strlen(userMsg), defaultPrompt, strlen(defaultPrompt));
 
@@ -166,7 +167,6 @@ void lgCmdFuncUnix(int argc, char* argv[])
       
    char recv[1024] = {0};
    int size = sizeof(recv)/sizeof(recv[0]);
-   printf("cmd is <%s>\n", cmd);
    getResultFromSystemCall(cmd, recv, &size);
    if(size > 0) {
       term("%s", recv);
@@ -186,15 +186,23 @@ void lgCmdFuncAbout(int argc, char* argv[])
    return;
 }
 
+void lgCmdFuncVersion(int argc, char* argv[])
+{
+   term("gcc: %s\n", __VERSION__);
+   term("module: %s, \tversion: %s, \tcompile: %s %s\n", "app",   moduleVersion(app),  moduleCompileDate(app),    moduleCompileTime(app) );
+   term("module: %s, \tversion: %s, \tcompile: %s %s\n", "comm",  moduleVersion(comm), moduleCompileDate(comm),   moduleCompileTime(comm));
+   term("module: %s, \tversion: %s, \tcompile: %s %s\n", "log",   moduleVersion(log),  moduleCompileDate(log),    moduleCompileTime(log));
+   term("module: %s, \tversion: %s, \tcompile: %s %s  ", "lg",    moduleVersion(lg),   moduleCompileDate(lg),     moduleCompileTime(lg));
+}
+
 int addDefaultCmdFunction(void)
 {
    addCmdFunction(&lgCmdFuncHelp,      "help");
    addCmdFunction(&lgCmdFuncUnix,      "unix");
    addCmdFunction(&lgCmdFuncWelcome,   "welcome");
    addCmdFunction(&lgCmdFuncAbout,     "about");
-   //addCmdFunction(&lgCmdFuncVersion,   "version");
+   addCmdFunction(&lgCmdFuncVersion,   "version");
 
    return LG_SUCCESS;
 }
-
 

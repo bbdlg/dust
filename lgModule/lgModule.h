@@ -24,7 +24,13 @@
 #include <stdio.h>
 #include <memory.h>
 #include <malloc.h>
-#include "../tools/tools.h"
+#include "tools.h"
+#include "errModule.h"
+#include "main.h"
+
+extern const char* lgVersion;
+extern const char* lgCompileDate;
+extern const char* lgCompileTime;
 
 #define MAX_CMD_FUNCTION   30
 #define MAX_LEN_CMD_PROMPT 24

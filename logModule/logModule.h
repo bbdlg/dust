@@ -30,10 +30,14 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-#include "../tools/tools.h"
+#include "tools.h"
 #ifdef LOG
-   #include "../errModule/errModule.h"
+   #include "errModule.h"
 #endif
+
+extern const char* logVersion;
+extern const char* logCompileDate;
+extern const char* logCompileTime;
 
 /* Error in this module */
 enum logErrNo {

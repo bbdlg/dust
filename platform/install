@@ -1,0 +1,39 @@
+#!/bin/sh
+
+DEST_DIR=`dirname \`pwd\``/../destdir
+
+if [ $# = 0 ]; then
+   cd ../build/ && make clean && make 
+   if [ $? != 0 ]; then
+      cd -
+      exit 1
+   fi
+   cd -
+elif [ "$1" = "clear" ]; then
+   cd ../build/ && ls -a |grep -v configure.in |grep -v Makefile.am |grep -v "^\.$" | grep -v "^\.\.$"|xargs rm -rf && cd -
+   exit 1
+elif [ "$1" = "reset" ]; then
+   cd ../build/ && aclocal && autoconf && autoheader && automake --add-missing && ./configure && make && cd -
+
+   if [ -d ${DEST_DIR} ]; then
+      mv ${DEST_DIR} ${DEST_DIR}_`date +%Y-%m-%d_%H_%M_%S`_bak
+   fi
+   mkdir ${DEST_DIR} ${DEST_DIR}/include/ ${DEST_DIR}/lib/ ${DEST_DIR}/doc ${DEST_DIR}/bin
+   mkdir ${DEST_DIR}/conf ${DEST_DIR}/log ${DEST_DIR}/data 
+
+   cp ../commModule/commModule.h  ${DEST_DIR}/include
+   cp ../errModule/errModule.h    ${DEST_DIR}/include
+   cp ../logModule/logModule.h    ${DEST_DIR}/include
+   cp ../lgModule/lgModule.h      ${DEST_DIR}/include
+   cp ../tools/tools.h            ${DEST_DIR}/include
+
+   cp ../logModule/seelog.sh      ${DEST_DIR}/bin
+   cp ../lgModule/lp.sh           ${DEST_DIR}/bin
+
+fi
+
+cp ../build/libdust.a         ${DEST_DIR}/lib
+cp ./dust.conf                ${DEST_DIR}/conf
+cd ${DEST_DIR}/lib && gcc -o main libdust.a -DTCP_SERVER_MODE && mv main ../bin && cd -
+echo "You can find product at ${DEST_DIR}"
+

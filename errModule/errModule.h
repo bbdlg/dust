@@ -38,14 +38,14 @@
  *
 *****************************************************************************/
 
-#include <stdio.h>
-
-//#define joinModuleErrEnum(moduleName)   (moduleName##ErrNo)
-#define joinModuleErrInfo(moduleName)   (moduleName##ErrInfo)
-#define moduleMaxErrNo(moduleName)      (moduleName##MAXERRNO)
-#define moduleErrInfo(moduleName, errno) ((errno<0) || (errno>=moduleMaxErrNo(moduleName))) ? \
-                                          "unknown "#moduleName" module error" : \
-                                          joinModuleErrInfo(moduleName)[errno]
+#define joinModuleErrInfo(moduleName)     (moduleName##ErrInfo)
+#define moduleMaxErrNo(moduleName)        (moduleName##MAXERRNO)
+#define moduleErrInfo(moduleName, errno)  ((errno<0) || (errno>=moduleMaxErrNo(moduleName))) ? \
+                                             "unknown "#moduleName" module error" : \
+                                             joinModuleErrInfo(moduleName)[errno]
+#define moduleVersion(moduleName)         (moduleName##Version)
+#define moduleCompileDate(moduleName)     (moduleName##CompileDate)
+#define moduleCompileTime(moduleName)     (moduleName##CompileTime)
 
 #endif
 
