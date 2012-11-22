@@ -2,10 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(libdust.a, 1.0.0, shiluo.110@163.com)
-AC_CONFIG_SRCDIR([../toolsModule/toolsModule.c])
-AM_CONFIG_HEADER([config.h])
-AM_INIT_AUTOMAKE(dust, 1.0)
+AC_INIT(main, 1.0.0, shiluo.110@163.com)
+AC_CONFIG_SRCDIR([../../src/userapp.c])
+AC_CONFIG_HEADER([config.h])
+AM_INIT_AUTOMAKE(main, 1.0)
 
 # Checks for programs.
 AC_PROG_AWK
@@ -33,5 +33,4 @@ AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([bzero dup2 gettimeofday memset select socket strchr strstr])
 
-AC_CONFIG_FILES
 AC_OUTPUT([Makefile])

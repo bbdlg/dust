@@ -24,8 +24,6 @@
 #include <stdio.h>
 #include <memory.h>
 #include <malloc.h>
-#include "tools.h"
-#include "errModule.h"
 #include "main.h"
 
 extern const char* lgVersion;

@@ -5,11 +5,11 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
-#include "../errModule/errModule.h"
-#include "../commModule/commModule.h"
-#include "../lgModule/lgModule.h"
-#include "../logModule/logModule.h"
-#include "../tools/tools.h"
+#include "errModule.h"
+#include "commModule.h"
+#include "lgModule.h"
+#include "logModule.h"
+#include "toolsModule.h"
 
 /* 应用程序版本信息 */
 extern const char* appVersion;

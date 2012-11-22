@@ -1,0 +1,37 @@
+include ./Makefile.am
+TMPDIR=build_tmp
+
+.PHONY all:has_built compile copy_bin
+.PHONY reset:copy_conf generate_makefile compile copy_bin
+
+has_built:
+ifneq ($(wildcard ${TMPDIR}), ${TMPDIR})
+	$(error try make reset)
+endif
+
+copy_conf:
+ifeq ($(wildcard ${TMPDIR}), ${TMPDIR})
+	rm -rf ${TMPDIR}
+	@echo "${TMPDIR} exists!"
+endif
+	mkdir ${TMPDIR}
+	cp ./configure.in ${TMPDIR}
+	cp ./Makefile.am  ${TMPDIR}
+
+generate_makefile:
+	@cd ./${TMPDIR} && aclocal && autoconf && autoheader && automake --add-missing && ./configure && cd -
+	@echo -e "generate_makefile finished!\n"
+
+copy_bin:
+	@cp ${TMPDIR}/${bin_PROGRAMS} ./
+	@echo -e "copy_bin finished!\n"
+
+compile:
+	${MAKE} -C ${TMPDIR}
+	@echo -e "compile finished!\n"
+
+clean:
+	${MAKE} clean -C ${TMPDIR}
+	@rm -rf ${bin_PROGRAMS}
+	
+

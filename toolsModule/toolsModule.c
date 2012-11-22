@@ -1,4 +1,4 @@
-#include "tools.h"
+#include "toolsModule.h"
 
 int getResultFromSystemCall(const char* pCmd, char* pResult, int* size)
 {

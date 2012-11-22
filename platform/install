@@ -19,21 +19,29 @@ elif [ "$1" = "reset" ]; then
       mv ${DEST_DIR} ${DEST_DIR}_`date +%Y-%m-%d_%H_%M_%S`_bak
    fi
    mkdir ${DEST_DIR} ${DEST_DIR}/include/ ${DEST_DIR}/lib/ ${DEST_DIR}/doc ${DEST_DIR}/bin
-   mkdir ${DEST_DIR}/conf ${DEST_DIR}/log ${DEST_DIR}/data 
+   mkdir ${DEST_DIR}/conf ${DEST_DIR}/log ${DEST_DIR}/data ${DEST_DIR}/src
 
-   cp ../commModule/commModule.h  ${DEST_DIR}/include
-   cp ../errModule/errModule.h    ${DEST_DIR}/include
-   cp ../logModule/logModule.h    ${DEST_DIR}/include
-   cp ../lgModule/lgModule.h      ${DEST_DIR}/include
-   cp ../tools/tools.h            ${DEST_DIR}/include
+   cp ../commModule/commModule.h    ${DEST_DIR}/include
+   cp ../errModule/errModule.h      ${DEST_DIR}/include
+   cp ../logModule/logModule.h      ${DEST_DIR}/include
+   cp ../lgModule/lgModule.h        ${DEST_DIR}/include
+   cp ../toolsModule/toolsModule.h  ${DEST_DIR}/include
+   cp ./userapp.h                   ${DEST_DIR}/include
+   cp ./main.h                      ${DEST_DIR}/include
 
-   cp ../logModule/seelog.sh      ${DEST_DIR}/bin
-   cp ../lgModule/lp.sh           ${DEST_DIR}/bin
+   cp ./userapp.c                   ${DEST_DIR}/src
+
+   cp ../logModule/seelog.sh        ${DEST_DIR}/bin
+   cp ../lgModule/lp.sh             ${DEST_DIR}/bin
 
 fi
 
-cp ../build/libdust.a         ${DEST_DIR}/lib
-cp ./dust.conf                ${DEST_DIR}/conf
-cd ${DEST_DIR}/lib && gcc -o main libdust.a -DTCP_SERVER_MODE && mv main ../bin && cd -
+cp ../build/libdust.a               ${DEST_DIR}/lib
+cp ./user_dust.conf                 ${DEST_DIR}/conf/dust.conf
+cp ./user_Makefile.am               ${DEST_DIR}/bin/Makefile.am
+cp ./user_makefile                  ${DEST_DIR}/bin/makefile
+cp ./user_configure.in              ${DEST_DIR}/bin/configure.in
+
+#cd ${DEST_DIR}/lib && gcc -o main libdust.a -DTCP_SERVER_MODE && mv main ../bin && cd -
 echo "You can find product at ${DEST_DIR}"
 

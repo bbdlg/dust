@@ -30,7 +30,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-#include "tools.h"
+#include "toolsModule.h"
 #ifdef LOG
    #include "errModule.h"
 #endif

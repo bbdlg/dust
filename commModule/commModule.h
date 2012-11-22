@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/select.h>
-#include "tools.h"
+#include "toolsModule.h"
 #ifdef LOG
    #include "logModule.h"
    #include "errModule.h"

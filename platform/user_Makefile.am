@@ -1,0 +1,9 @@
+bin_PROGRAMS=main
+main_SOURCES=${DUSTHOME}/src/userapp.c
+main_LDADD=${DUSTHOME}/lib/libdust.a
+main_LDFLAGS=-DTCP_SERVER_MODE
+INCLUDES=-I${DUSTHOME}/include/
+DEFS+=-DTCP_SERVER_MODE
+DEFS+=-DLOG
+DEFS+=-ggdb3
+AUTOMAKE_OPTIONS=foreign

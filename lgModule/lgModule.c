@@ -182,7 +182,7 @@ void lgCmdFuncWelcome(int argc, char* argv[])
 
 void lgCmdFuncAbout(int argc, char* argv[])
 {
-   term("Author <bbdlg>\nWrite this module for my dear @quan-quan007");
+   term("Author: <bbdlg>\nThank my dear @quan-quan007:)");
    return;
 }
 
