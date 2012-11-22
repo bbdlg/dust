@@ -1,8 +1,13 @@
 include ./Makefile.am
 TMPDIR=build_tmp
 
-.PHONY all:has_built compile copy_bin
-.PHONY reset:copy_conf generate_makefile compile copy_bin
+.PHONY all:test_environment has_built compile copy_bin
+.PHONY reset:test_environment copy_conf generate_makefile compile copy_bin
+
+test_environment:
+ifeq (${DUSTHOME}, )
+	$(error DUSTHOME is not set)
+endif
 
 has_built:
 ifneq ($(wildcard ${TMPDIR}), ${TMPDIR})
