@@ -46,8 +46,10 @@ int main(int argc, char** argv)
       memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
       sprintf(tmp, "%s/%s", homePath, subdir[i]);
       if(access(tmp, F_OK)) {
-         log(LOG_ERROR, "%s does not exist, try mkdir %s", tmp);
-         exit(1);
+         log(LOG_WARNING, "%s does not exist, now create it...", tmp);
+         char mkdirCmd[256] = {0};
+         sprintf(mkdirCmd, "mkdir %s", tmp);
+         system(mkdirCmd);
       }
    }
    

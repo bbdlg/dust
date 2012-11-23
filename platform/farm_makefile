@@ -28,7 +28,7 @@ generate_makefile:
 	@echo -e "generate_makefile finished!\n"
 
 copy_bin:
-	@cp ${TMPDIR}/${bin_PROGRAMS} ./
+	@cp ${TMPDIR}/${bin_PROGRAMS} ${DUSTHOME}/bin
 	@echo -e "copy_bin finished!\n"
 
 compile:
