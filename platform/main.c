@@ -15,9 +15,9 @@ int main(int argc, char** argv)
    int ret,i;
    char tmp[256] = {0};
    struct timeval curTimeval;
-   homePath = getenv("DUSTHOME");
+   homePath = getenv("DFCHOME");
    if(NULL == homePath) {
-      ERRORTIP("$DUSTHOME is null, try export...");
+      ERRORTIP("$DFCHOME is null, try export...");
    }
 
    //init logModule
@@ -28,17 +28,18 @@ int main(int argc, char** argv)
       ERRORTIP("logInit %s", moduleErrInfo(log, ret));
    }
    log(LOG_INFO, "App<%s> start running!", moduleVersion(app));
+   log(LOG_INFO, "Log file will be in %s", tmp);
 
    //check running environment
    if(NULL == moduleVersion(app)) {
       log(LOG_WARNING, "it seems that appVerInfo is not set");
    }
    if(NULL == homePath) {
-      log(LOG_ERROR, "DUSTHOME is not set");
+      log(LOG_ERROR, "DFCHOME is not set");
       exit(1);
    }
    if(strlen(homePath) > 200) {
-      log(LOG_ERROR, "$DUSTHOME is too long");
+      log(LOG_ERROR, "$DFCHOME is too long");
       exit(1);
    }
    const char* subdir[] = {"", "bin", "conf", "log", "data"};

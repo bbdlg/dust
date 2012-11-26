@@ -1,37 +1,162 @@
-dust
-====
+WELCOME TO DFC
+==============
+Learn DFC In Three Chapters...
+* Chapter One:    What Is DFC?
+* Chapter Two:    Getting Start
+* Chapter Three:  Introduction Of Modules
 
-  Dust is a integration of modules, such as logModule and errModule, which can be used to insert into any C/C++ project 
-alone without any modification.
-  Dust is written by C, so it is compatible with C and C++ project.
-  I use unity to make sure every dust module is usable. Take logModule as an example:
-              [root@localhost dust]# tree logModule
-              logModule
-              |-- logModule.c               ## main code of module
-              |-- logModule.conf            ## config file of module
-              |-- logModule.h               ## head file of module
-              |-- seelog.sh                 
-              |-- testLogModule             ## test directory
-              |   |-- makefile
-              |   |-- start_test.sh
-              |   |-- test_logModule.c
-              |   `-- test_logModule_Runner.c
-              |-- tools.c
-              `-- tools.h
-  You can cd into testLogModule, and type:
-              [root@localhost testLogModule]# ./start_test.sh test_logModule.c
-  Now, you will see all tests instance of logModule have passed.
+1 What Is DFC?
+   DFC is a short for Dust, Farm, and Crop. It provides a develop flow for C/C++ project.  In a nutshell, Dust is source code of platform, Farm is a platform, Crop is a running environment.  First, Dust is a integration of modules, such as communication module, log module, error manage module, debug outside module, and so on. User can add a new module to insert into Dust.  It can generate a platform named Farm easily via executing a script in Dust.  Farm provides some simple interfaces for user to add its own business code. Farm use automake to generate executable files. This can let user avoid writing complex makefiles and pay their attention to kernel code.  It can pack all executable files, config files, tools scripts into a published media named crop_x.y.z.tar.gz.  This compression package can pass to maintenance personnel. Crop unpacked will be a complete running entironment.
 
-  NOTE: Before do testing things, you must download ThrowTheSwitch-Unity-8661f3f.tar.gz from https://github.com/ThrowTheSwitch/Unity/downloads, 
-put it into dust directory, and change name to 'unity'.
-  In dust project, the file tree like this:
-              [root@localhost dust]# tree -L 1 ../dust
-               ../dust
-               |-- README.md
-               |-- commModule
-               |-- errModule
-               |-- lgModule
-               |-- logModule
-               `-- unity
 
+2 Getting Start
+2.1 Dust to Farm
+   An Example:
+
+      [root@localhost dust]# pwd
+      /root/Desktop/dust
+      [root@localhost dust]# cd platform/
+      [root@localhost platform]# ./dust2farm.sh help
+      Usage: dust2farm.sh [platform_name version]
+             dust2farm.sh [help | clear | make | reset | test]
+             help,  show this info
+             clear, clear compiling temp files in dust/build/
+             make,  just make, if any error, try "dust2farm.sh reset"
+             test,  generate platform without package
+
+      [root@localhost platform]# ./dust2farm.sh farm x.y.z
+      //... some output information
+      Target<farm_1.0.2.tar.gz> will be found in current directory.
+
+      [root@localhost platform]# ll farm_x.y.z.tar.gz
+      -rw-r--r-- 1 root root 165357 11-26 11:50 farm_x.y.z.tar.gz
+
+   Unpack this farm_x.y.z.tar.gz, we can get the platform - Farm.
+
+2.2 Use Farm
+   See dust/platform/farm_README.
+
+2.3 Use Crop
+   See dust/platfrom/crop_README.
+
+2.4 Test Dust Modules
+   To enable the TEST function of Dust, you must download ThrowTheSwitch-Unity-8661f3f.tar.gz from https://github.com/ThrowTheSwitch/Unity/downloads, put it into Dust root directory, unpack it, and change name to 'unity'.
+   In Dust root directory, the file tree like this:
+
+      [root@localhost dust]# tree -L 1
+      .
+      |-- README
+      |-- build
+      |-- commModule
+      |-- errModule
+      |-- lgModule
+      |-- logModule
+      |-- platform
+      |-- toolsModule
+      `-- unity
+
+   Dust use unity to make sure every module is usable. Take logModule as an example:
+
+      [root@localhost dust]# tree logModule/
+      logModule/
+      |-- logModule.c
+      |-- logModule.conf
+      |-- logModule.h
+      |-- makefile
+      |-- seelog.sh
+      `-- testLogModule
+          |-- makefile
+          |-- start_test.sh
+          `-- test_logModule.c
+               
+   You can cd into testLogModule, and type:
+
+      [root@localhost testLogModule]# ./start_test.sh test_logModule.c
+
+   Now, you will see all test instance of logModule have passed.
+
+3 Introduction Of Modules
+   Every introduction of modules will be found in the header file of module. Try "cat logModule/logModule.h" for example.
+
+
+
+
+
+欢迎使用DFC
+===========
+通过三个章节了解DFC：
+1、什么是DFC？
+2、开始使用
+3、模块介绍
+
+1、什么是DFC？
+   DFC是Dust、Farm和Crop的缩写，为C/C++项目提供了一个开发流。概括地说，Dust是平台源码，Farm是开发平台，Crop是运行环境。首先，Dust是一个基础模块的集合，如通信模块、日志模块、错误管理模块、与外部通讯模块等，用户可以很方便的集成新的模块到Dust中。通过执行Dust中的脚本，可以很方便的生成一个名为Farm的开发平台。Farm提供了简单的接口让用户增加自己的业务代码，并使用automake自动生成可执行文件。通过执行Farm中的脚本，可以将可执行文件、配置文件、辅助工具等打包为发布介质Crop。解压后的Crop将是一个完整的运行环境。
+
+2、开始使用
+2.1 由Dust生成Farm
+一个例子：
+
+      [root@localhost dust]# pwd
+      /root/Desktop/dust
+      [root@localhost dust]# cd platform/
+      [root@localhost platform]# ./dust2farm.sh help
+      Usage: dust2farm.sh [platform_name version]
+             dust2farm.sh [help | clear | make | reset | test]
+             help,  show this info
+             clear, clear compiling temp files in dust/build/
+             make,  just make, if any error, try "dust2farm.sh reset"
+             test,  generate platform without package
+
+      [root@localhost platform]# ./dust2farm.sh farm x.y.z
+      //... 一些输出信息
+      Target<farm_1.0.2.tar.gz> will be found in current directory.
+
+      [root@localhost platform]# ll farm_x.y.z.tar.gz
+      -rw-r--r-- 1 root root 165357 11-26 11:50 farm_x.y.z.tar.gz
+
+将farm_x.y.z.tar.gz解压即可获得开发平台Farm。
+
+2.2 Farm的使用
+   参见 dust/platform/farm_README.
+
+2.3 Farm的使用
+   参见 dust/platform/crop_README.
+
+2.4 测试Dust的模块
+   为了启用Dust的测试功能，你必须从https://github.com/ThrowTheSwitch/Unity/downloads下载ThrowTheSwitch-Unity-8661f3f.tar.gz，将它解压到Dust的根目录下，解压并改名为unity。
+   在Dust的根目录，文件树如下：
+      [root@localhost dust]# tree -L 1
+      .
+      |-- README
+      |-- build
+      |-- commModule
+      |-- errModule
+      |-- lgModule
+      |-- logModule
+      |-- platform
+      |-- toolsModule
+      `-- unity
+
+   Dust使用unity测试，来确保各模块是可用的。以logModule为例：
+
+      [root@localhost dust]# tree logModule/
+      logModule/
+      |-- logModule.c
+      |-- logModule.conf
+      |-- logModule.h
+      |-- makefile
+      |-- seelog.sh
+      `-- testLogModule
+          |-- makefile
+          |-- start_test.sh
+          `-- test_logModule.c
+               
+   进入testLogModule，输入：
+
+      [root@localhost testLogModule]# ./start_test.sh test_logModule.c
+
+   可以看到所有的测试用例均已通过。
+
+3 模块介绍
+   每个模块的介绍及使用均可以在模块的头文件里找到。你可以试一下"cat logModule/logModule.h"这个命令。
 

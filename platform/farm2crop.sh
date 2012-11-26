@@ -22,15 +22,16 @@ if [ $# != 2 ]; then
          exit
          ;;
    esac
+else
+   APP=$1
+   VER=$2
 fi
 
-APP=$1
-VER=$2
 TARGETDIR=${APP}_${VER}
 TARGET=${TARGETDIR}.tar.gz
 
-if [ ! -d ${DUSTHOME} ]; then
-   echo "Failed: DUSTHOME is not set, now exit ..."
+if [ ! -d ${DFCHOME} ]; then
+   echo "Failed: DFCHOME is not set, now exit ..."
    echo
    exit
 fi
@@ -40,15 +41,15 @@ mkdir ${TARGETDIR}
 mkdir ${TARGETDIR}/bin
 mkdir ${TARGETDIR}/conf
 
-cp -rf `ls ${DUSTHOME}/bin/ | grep -E -v "^(\`basename $0\`|crop_*|${TARGETDIR})$"` ${TARGETDIR}/bin/
-cp -rf ${DUSTHOME}/conf/*     ${TARGETDIR}/conf
-#cp -rf ${DUSTHOME}/crop_install.sh ${TARGETDIR}/install.sh
-#cp -rf ${DUSTHOME}/crop_README     ${TARGETDIR}/README
+cp -rf `ls ${DFCHOME}/bin/ | grep -E -v "^(\`basename $0\`|crop_*|${TARGETDIR})"` ${TARGETDIR}/bin/
+cp -rf ${DFCHOME}/conf/*               ${TARGETDIR}/conf
+cp -rf ${DFCHOME}/bin/crop_README      ${TARGETDIR}/README
+cp -rf ${DFCHOME}/bin/crop_install.sh  ${TARGETDIR}/install.sh
 
 tar czf ${TARGET} ${TARGETDIR}
 rm -rf ${TARGETDIR}
 
-mv ${TARGET} ${DUSTHOME}
-echo "Target<${TARGET}> will be found in ${DUSTHOME}."
+mv ${TARGET} ${DFCHOME}
+echo "Target<${TARGET}> will be found in ${DFCHOME}."
 echo
 

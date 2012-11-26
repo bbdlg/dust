@@ -20,7 +20,7 @@ case $1 in
       cd ../build/ && make && cd -
       ;;
    reset)
-      cd ../build/ && aclocal && autoconf && autoheader && automake --add-missing && ./configure && make && cd -
+      cd ../build/ && aclocal && autoconf && autoheader && automake --add-missing && ./configure && make clean && make && cd -
       ;;
    *)
       IS_EXIT=NO
@@ -47,7 +47,7 @@ fi
 TARGETDIR=${FARM}_${VER}
 TARGET=${TARGETDIR}.tar.gz
 
-cd ../build/ && aclocal && autoconf && autoheader && automake --add-missing && ./configure && make && cd -
+cd ../build/ && aclocal && autoconf && autoheader && automake --add-missing && ./configure && make clean && make && cd -
 echo
 
 if [ -d ${TARGETDIR} ]; then
@@ -64,6 +64,7 @@ mkdir ${TARGETDIR}/conf
 #mkdir ${TARGETDIR}/log 
 #mkdir ${TARGETDIR}/data 
 
+cp ./farm_README                 ${TARGETDIR}/README
 cp ../commModule/commModule.h    ${TARGETDIR}/include
 cp ../errModule/errModule.h      ${TARGETDIR}/include
 cp ../logModule/logModule.h      ${TARGETDIR}/include

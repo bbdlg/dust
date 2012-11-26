@@ -3,10 +3,14 @@ TMPDIR=build_tmp
 
 .PHONY all:test_environment has_built compile copy_bin
 .PHONY reset:test_environment copy_conf generate_makefile compile copy_bin
+.PHONY help:
+	@echo "Usage:  make [all | reset | help]"
+	@echo "        If get an error tip by using 'make', try make reset."
+	@echo
 
 test_environment:
-ifeq (${DUSTHOME}, )
-	$(error DUSTHOME is not set)
+ifeq (${DFCHOME}, )
+	$(error DFCHOME is not set)
 endif
 
 has_built:
@@ -28,8 +32,8 @@ generate_makefile:
 	@echo -e "generate_makefile finished!\n"
 
 copy_bin:
-	@cp ${TMPDIR}/${bin_PROGRAMS} ${DUSTHOME}/bin
-	@echo -e "copy_bin finished!\n"
+	@cp ${TMPDIR}/${bin_PROGRAMS} ${DFCHOME}/bin
+	@echo -e "You can find ${bin_PROGRAMS} in ${DFCHOME}/bin\n"
 
 compile:
 	${MAKE} -C ${TMPDIR}

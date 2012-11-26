@@ -1,8 +1,8 @@
-bin_PROGRAMS=main
-main_SOURCES=${DUSTHOME}/src/userapp.c
-main_LDADD=${DUSTHOME}/lib/libdust.a
-main_LDFLAGS=-DTCP_SERVER_MODE
-INCLUDES=-I${DUSTHOME}/include/
+bin_PROGRAMS=demo
+demo_SOURCES=${DFCHOME}/src/userapp.c
+demo_LDADD=${DFCHOME}/lib/libdust.a
+demo_LDFLAGS=-DTCP_SERVER_MODE
+INCLUDES=-I${DFCHOME}/include/
 DEFS+=-DTCP_SERVER_MODE
 DEFS+=-DLOG
 DEFS+=-ggdb3

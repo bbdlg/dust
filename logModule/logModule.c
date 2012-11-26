@@ -5,7 +5,7 @@ const char* logCompileDate = __DATE__;
 const char* logCompileTime = __TIME__;
 
 const char* logConfFile = "../logMoudle/logModule.conf";
-const char* defaultRootPathStoreLog = "/tmp/log";
+const char* defaultRootPathStoreLog = "/log";
 const int   defaultSecondsSwitchLog = 60;
 const int   defaultKbSwitchLog = 1024;
 const char* formatLogDir = "yyyyMMdd";
@@ -64,7 +64,13 @@ int createLogFile(void)
          memcpy(_rootPathStoreLog, res, strlen(res));
       }else{
          fprintf(stderr, "can't get value of rootPathStoreLog from %s, use default value<%s>\n", logConfFile, defaultRootPathStoreLog);
-         memcpy(_rootPathStoreLog, defaultRootPathStoreLog, strlen(defaultRootPathStoreLog));
+         if(getenv("DFCHOME")) {
+            sprintf(_rootPathStoreLog, "%s", getenv("DFCHOME"));
+            memcpy(_rootPathStoreLog + strlen(_rootPathStoreLog), defaultRootPathStoreLog, strlen(defaultRootPathStoreLog));
+         }
+         else {
+            memcpy(_rootPathStoreLog, defaultRootPathStoreLog, strlen(defaultRootPathStoreLog));
+         }
       }
 
       len = sizeof(res)/sizeof(res[0]);
