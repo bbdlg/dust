@@ -2,8 +2,8 @@
 #define _ERRMODULE_H_
 /****************************************************************************
  * name:     错误管理模块
- * version:  v1.0
- * time:     2012-9-28 9:07:08
+ * version:  v1.0.0
+ * time:     2012-11-26 20:47:08
  * author:   bbdlg
  * blog:     http://my.oschina.net/bbdlg
  * 

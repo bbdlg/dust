@@ -1,5 +1,18 @@
 #ifndef _COMMMDULE_H_
 #define _COMMMDULE_H_
+/****************************************************************************
+ * name:     comm模块
+ * version:  v1.0.0
+ * time:     2012-11-26 20:40:54
+ * author:   bbdlg
+ * blog:     http://my.oschina.net/bbdlg
+ * 
+ * 功能：
+ *    通过在配置文件中配置参数，在程序中可自动完成相应的处理。如在配置文件中
+ * 配置一个TcpServer监听1986端口，程序自动读取该配置文件，并完成该端口的监听
+ * 过程。
+ *    
+*****************************************************************************/
 
 #include <stdio.h>
 #include <errno.h>
@@ -14,6 +27,9 @@
    #include "errModule.h"
 #endif
 
+/*
+ * Version and Compile Info
+ * */
 extern const char* commVersion;
 extern const char* commCompileDate;
 extern const char* commCompileTime;

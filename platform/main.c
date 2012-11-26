@@ -28,7 +28,7 @@ int main(int argc, char** argv)
       ERRORTIP("logInit %s", moduleErrInfo(log, ret));
    }
    log(LOG_INFO, "App<%s> start running!", moduleVersion(app));
-   log(LOG_INFO, "Log file will be in %s", tmp);
+   log(LOG_INFO, "Log file will be in <%s/log/>", getenv("DFCHOME"));
 
    //check running environment
    if(NULL == moduleVersion(app)) {

@@ -11,13 +11,13 @@ echo "         target name will be ${TARGET}"
 echo
 
 if [ $# != 2 ]; then
-   echo -n "Parameter maybe wrong, run me again?(y/n):"
+   echo -n "Are u sure to use default appname and version?(y/n):"
    read RUNAGAIN
    case $RUNAGAIN in
-      n|N) 
+      y|Y) 
          echo "Now use default value, target name will be ${TARGET}"
          ;;
-      y|Y|*) 
+      n|N|*) 
          echo "exit ..."
          exit
          ;;
@@ -30,8 +30,8 @@ fi
 TARGETDIR=${APP}_${VER}
 TARGET=${TARGETDIR}.tar.gz
 
-if [ ! -d ${DFCHOME} ]; then
-   echo "Failed: DFCHOME is not set, now exit ..."
+if [[ ! -d ${DFCHOME} ]] || [[ "${DFCHOME}" != `dirname \`pwd\`` ]]; then
+   echo "Failed: DFCHOME may be wrong, now exit ..."
    echo
    exit
 fi

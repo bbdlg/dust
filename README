@@ -6,8 +6,15 @@ Learn DFC In Three Chapters...
 * Chapter Three:  Introduction Of Modules
 
 1 What Is DFC?
-   DFC is a short for Dust, Farm, and Crop. It provides a develop flow for C/C++ project.  In a nutshell, Dust is source code of platform, Farm is a platform, Crop is a running environment.  First, Dust is a integration of modules, such as communication module, log module, error manage module, debug outside module, and so on. User can add a new module to insert into Dust.  It can generate a platform named Farm easily via executing a script in Dust.  Farm provides some simple interfaces for user to add its own business code. Farm use automake to generate executable files. This can let user avoid writing complex makefiles and pay their attention to kernel code.  It can pack all executable files, config files, tools scripts into a published media named crop_x.y.z.tar.gz.  This compression package can pass to maintenance personnel. Crop unpacked will be a complete running entironment.
-
+   DFC is a short for Dust, Farm, and Crop. It provides a develop flow for C/C++ project.  In a nutshell, Dust is source code of platform, Farm is a platform, Crop is a running environment.  First, Dust is a integration of modules, such as communication module, log module, error manage module, debug outside module, and so on. User can add a new module to insert into Dust.  It can generate a platform named Farm easily via executing a script in Dust.  Farm provides some simple interfaces for user to add its own business code. Farm use automake to generate executable files. This can let user avoid writing complex makefiles and pay their attention to kernel code.  It can pack all executable files, config files, tools scripts into a published media named crop_x.y.z.tar.gz.  This compression package can pass to maintenance personnel. Crop unpacked will be a complete running environment.
+   An example:
+      dust_1.0.0.tar.gz --(tar -zxvf   )-->  dust_1.0.0                    (Dust developer)
+      dust_1.0.0        --(dust2farm.sh)-->  farm_1.0.0.tar.gz             (Dust developer)
+      farm_1.0.0.tar.gz --(tar -zxvf   )-->  farm_1.0.0                    (Farm developer)
+      farm_1.0.0        --(make reset  )-->  farm_1.0.0/bin/demo           (Farm developer)
+      farm_1.0.0        --(farm2crop.sh)-->  crop_1.0.0.tar.gz             (Farm developer)
+      crop_1.0.0.tar.gz --(tar -zxvf   )-->  crop_1.0.0                    (maintenance personnel)
+      crop_1.0.0        --(install.sh  )-->  complete running environment  (maintenance personnel)
 
 2 Getting Start
 2.1 Dust to Farm
@@ -31,7 +38,7 @@ Learn DFC In Three Chapters...
       [root@localhost platform]# ll farm_x.y.z.tar.gz
       -rw-r--r-- 1 root root 165357 11-26 11:50 farm_x.y.z.tar.gz
 
-   Unpack this farm_x.y.z.tar.gz, we can get the platform - Farm.
+   Unpack this farm_x.y.z.tar.gz, we can get the platform - Farm. 'x.y.z' is the version of farm.
 
 2.2 Use Farm
    See dust/platform/farm_README.
@@ -89,10 +96,18 @@ Learn DFC In Three Chapters...
 2、开始使用
 3、模块介绍
 
-1、什么是DFC？
+1  什么是DFC？
    DFC是Dust、Farm和Crop的缩写，为C/C++项目提供了一个开发流。概括地说，Dust是平台源码，Farm是开发平台，Crop是运行环境。首先，Dust是一个基础模块的集合，如通信模块、日志模块、错误管理模块、与外部通讯模块等，用户可以很方便的集成新的模块到Dust中。通过执行Dust中的脚本，可以很方便的生成一个名为Farm的开发平台。Farm提供了简单的接口让用户增加自己的业务代码，并使用automake自动生成可执行文件。通过执行Farm中的脚本，可以将可执行文件、配置文件、辅助工具等打包为发布介质Crop。解压后的Crop将是一个完整的运行环境。
+   一个例子:
+      dust_1.0.0.tar.gz --(tar -zxvf   )-->  dust_1.0.0                    (Dust开发者)
+      dust_1.0.0        --(dust2farm.sh)-->  farm_1.0.0.tar.gz             (Dust开发者)
+      farm_1.0.0.tar.gz --(tar -zxvf   )-->  farm_1.0.0                    (Farm开发者)
+      farm_1.0.0        --(make reset  )-->  farm_1.0.0/bin/demo           (Farm开发者)
+      farm_1.0.0        --(farm2crop.sh)-->  crop_1.0.0.tar.gz             (Farm开发者)
+      crop_1.0.0.tar.gz --(tar -zxvf   )-->  crop_1.0.0                    (运维人员)
+      crop_1.0.0        --(install.sh  )-->  完整的运行环境                (运维人员)
 
-2、开始使用
+2  开始使用
 2.1 由Dust生成Farm
 一个例子：
 
@@ -114,7 +129,7 @@ Learn DFC In Three Chapters...
       [root@localhost platform]# ll farm_x.y.z.tar.gz
       -rw-r--r-- 1 root root 165357 11-26 11:50 farm_x.y.z.tar.gz
 
-将farm_x.y.z.tar.gz解压即可获得开发平台Farm。
+将farm_x.y.z.tar.gz解压即可获得开发平台Farm。x.y.z是Farm的版本号，如1.0.0。
 
 2.2 Farm的使用
    参见 dust/platform/farm_README.
@@ -157,6 +172,6 @@ Learn DFC In Three Chapters...
 
    可以看到所有的测试用例均已通过。
 
-3 模块介绍
+3  模块介绍
    每个模块的介绍及使用均可以在模块的头文件里找到。你可以试一下"cat logModule/logModule.h"这个命令。
 

@@ -12,6 +12,9 @@ test_environment:
 ifeq (${DFCHOME}, )
 	$(error DFCHOME is not set)
 endif
+ifneq (${DFCHOME}, $(shell dirname $(shell pwd)))
+	$(error DFCHOME may be wrong, try <export DFCHOME=`dirname \`pwd\``>)
+endif
 
 has_built:
 ifneq ($(wildcard ${TMPDIR}), ${TMPDIR})

@@ -63,7 +63,7 @@ int createLogFile(void)
       if(strlen(res) != 0) {
          memcpy(_rootPathStoreLog, res, strlen(res));
       }else{
-         fprintf(stderr, "can't get value of rootPathStoreLog from %s, use default value<%s>\n", logConfFile, defaultRootPathStoreLog);
+         //fprintf(stderr, "can't get value of rootPathStoreLog from %s, use default value<%s>\n", logConfFile, defaultRootPathStoreLog);
          if(getenv("DFCHOME")) {
             sprintf(_rootPathStoreLog, "%s", getenv("DFCHOME"));
             memcpy(_rootPathStoreLog + strlen(_rootPathStoreLog), defaultRootPathStoreLog, strlen(defaultRootPathStoreLog));

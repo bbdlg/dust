@@ -2,8 +2,8 @@
 #define _LGMODULE_H_
 /****************************************************************************
  * name:     lg模块
- * version:  v1.0
- * time:     2012-10-16 9:40:54
+ * version:  v1.0.0
+ * time:     2012-11-26 20:40:54
  * author:   bbdlg
  * blog:     http://my.oschina.net/bbdlg
  * 
@@ -14,9 +14,11 @@
  * 使用方法：
  *    1、lg和lp间商定自定义命令，如 show our_love_memory；
  *    2、通过调用addCmdFunction，注册show命令，及相应的处理函数 
- *          CmdFunction procCmd_show(int argc, char* argv[]);
+ *          addCmdFunction(&procCmd_show, "show");
  *    3、在procCmd_show函数中完成对our_love_memory的处理：
- *          term("we are both born in %d~", 1986);
+ *          CmdFunction procCmd_show(int argc, char* argv[]) {
+ *             term("we are both born in %d~", 1986);
+ *          }
  *    4、启动lp.sh或用nc命令，发送一句"show our_love_memory"，lg就会应答一句：
  *          we are both born in 1986~
 *****************************************************************************/
@@ -26,6 +28,9 @@
 #include <malloc.h>
 #include "main.h"
 
+/*
+ * Version and Compile Info
+ * */
 extern const char* lgVersion;
 extern const char* lgCompileDate;
 extern const char* lgCompileTime;
