@@ -88,13 +88,13 @@ cp ../errModule/errModule.h      ${TARGETDIR}/include
 cp ../logModule/logModule.h      ${TARGETDIR}/include
 cp ../lgModule/lgModule.h        ${TARGETDIR}/include
 cp ../toolsModule/toolsModule.h  ${TARGETDIR}/include
-cp ./userapp.h                   ${TARGETDIR}/include
+cp ./farm_userapp.h              ${TARGETDIR}/include/userapp.h
 cp ./main.h                      ${TARGETDIR}/include
 cp ../logModule/seelog.sh        ${TARGETDIR}/bin
 cp ../lgModule/lp.sh             ${TARGETDIR}/bin
 cp ./farm2crop.sh                ${TARGETDIR}/bin
 cp ./crop_*                      ${TARGETDIR}/bin/
-cp ./userapp.c                   ${TARGETDIR}/src
+cp ./farm_userapp.c              ${TARGETDIR}/src/userapp.c
 cp ./farm_Makefile.am            ${TARGETDIR}/src/Makefile.am
 cp ./farm_makefile               ${TARGETDIR}/src/makefile
 cp ./farm_configure.in           ${TARGETDIR}/src/configure.in
