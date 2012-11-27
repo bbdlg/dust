@@ -7,6 +7,7 @@ WELCOME TO FARM
 Assume we are in Farm root directory, enter the following command:
 
    [root@localhost farm_1.0.0]# echo "export DFCHOME=`pwd`" >> ~/.bash_profile
+   [root@localhost farm_1.0.0]# source ~/.bash_profile
    [root@localhost farm_1.0.0]# echo "export PATH=$PATH:$DFCHOME/bin:." >> ~/.bash_profile
    [root@localhost farm_1.0.0]# source ~/.bash_profile
 
@@ -68,6 +69,7 @@ Enter "farm2crop.sh crop 1.0.0", we will find crop_1.0.0.tar.gz in $DFCHOME.
 假设我们在Farm的根目录下，输入下列命令：
 
    [root@localhost farm_1.0.0]# echo "export DFCHOME=`pwd`" >> ~/.bash_profile
+   [root@localhost farm_1.0.0]# source ~/.bash_profile
    [root@localhost farm_1.0.0]# echo "export PATH=$PATH:$DFCHOME/bin:." >> ~/.bash_profile
    [root@localhost farm_1.0.0]# source ~/.bash_profile
 

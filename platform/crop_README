@@ -1,0 +1,62 @@
+WELCOME TO CROP
+===============
+
+1 Getting Start
+
+If you see me, it means you have unpacked crop_x.y.z.tar.gz.
+Now, the only thing you need to do is Enter:
+
+   [root@localhost crop_x.y.z]# pwd
+   /tmp/crop_x.y.z
+   [root@localhost crop_x.y.z]# ./install.sh
+   current directory </tmp/crop_x.y.z> will be the DFCHOME.
+   /tmp/crop_x.y.z is the work space.
+
+or
+
+   [root@localhost crop_x.y.z]# ./install.sh /tmp/test
+   </tmp/test> is a valid directory, now <crop_x.y.z> will be installed there.
+   /tmp/test/crop_x.y.z is the work space.
+
+Reentry your user account, or enter "source ~/.bash_profile" to make the self-starting in operation.
+Remember: here it is  "$DFCHOME/bin/your_program_name".
+
+2 Self-starting
+The flowing command can make your program self-starting.
+   sudo sh -c "echo 'su - dm -c \"your_program_name\"' sudo >>/etc/rc.d/rc.local"
+Enjoy~
+
+
+
+
+
+欢迎使用Crop
+===============
+
+1 开始使用
+
+你解压了我，不能一笑而过。现在还得输入下面几条命令：
+
+   [root@localhost crop_x.y.z]# pwd
+   /tmp/crop_x.y.z
+   [root@localhost crop_x.y.z]# ./install.sh
+   current directory </tmp/crop_x.y.z> will be the DFCHOME.
+   /tmp/crop_x.y.z is the work space.
+
+或者
+
+   [root@localhost crop_x.y.z]# ./install.sh /tmp/test
+   </tmp/test> is a valid directory, now <crop_x.y.z> will be installed there.
+   /tmp/test/crop_x.y.z is the work space.
+
+重新进入一下你所在的账户或 source ~/.bash_profile 使环境变量生效。
+哦了，现在你可以玩你的程序了~ 记住，它在这里：$DFCHOME/bin/你的程序名
+
+2 开机自启动
+使用下面的命令，让你的程序随叫随到：
+   
+   sudo sh -c "echo 'su - dm -c \"你的程序名\"' sudo >>/etc/rc.d/rc.local"
+
+你可能会遇到 “xxx is not in the sudoers file.  This incident will be reported.”的问题，
+root下编辑/etc/sudoers，在root ALL=(ALL)ALL行下添加xxx ALL=(ALL)ALL，xxx为你的用户名。
+
