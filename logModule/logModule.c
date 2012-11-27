@@ -82,7 +82,7 @@ int createLogFile(void)
       if(strlen(res) != 0) {
          memcpy(_rootPathStoreLog, res, strlen(res));
       }else{
-         //fprintf(stderr, "can't get value of rootPathStoreLog from %s, use default value<%s>\n", logConfFile, defaultRootPathStoreLog);
+         //fprintf(stdout, "can't get value of rootPathStoreLog from %s, use default value<%s>\n", logConfFile, defaultRootPathStoreLog);
          if(getenv("DFCHOME")) {
             sprintf(_rootPathStoreLog, "%s", getenv("DFCHOME"));
             memcpy(_rootPathStoreLog + strlen(_rootPathStoreLog), defaultRootPathStoreLog, strlen(defaultRootPathStoreLog));
@@ -95,7 +95,7 @@ int createLogFile(void)
       len = sizeof(res)/sizeof(res[0]);
       readValueFromConf_ext(logConfFile, 1, "LogModule", "secondsSwitchLog", res, &len);
       if(0 == (tmp=atoi(res))) {
-         fprintf(stderr, "can't get value of secondsSwitchLog from %s, use default value<%d>\n", logConfFile, defaultSecondsSwitchLog);
+         fprintf(stdout, "can't get value of secondsSwitchLog from %s, use default value<%d>\n", logConfFile, defaultSecondsSwitchLog);
          _secondsSwitchLog = defaultSecondsSwitchLog;
       }else {
          _secondsSwitchLog = tmp;
@@ -104,7 +104,7 @@ int createLogFile(void)
       len = sizeof(res)/sizeof(res[0]);
       readValueFromConf_ext(logConfFile, 1, "LogModule", "kbSwitchLog", res, &len);
       if(0 == (tmp=atoi(res))) {
-         fprintf(stderr, "can't get value of kbSwitchLogfrom %s, use default value<%d>\n", logConfFile, defaultKbSwitchLog);
+         fprintf(stdout, "can't get value of kbSwitchLogfrom %s, use default value<%d>\n", logConfFile, defaultKbSwitchLog);
          _kbSwitchLog = defaultKbSwitchLog;
       }else {
          _kbSwitchLog = tmp;

@@ -19,8 +19,18 @@
 
 #include "../commModule.h"
 #include "../../lgModule/lgModule.h"
-#include "../../tools/tools.h"
+#include "../../toolsModule/toolsModule.h"
 #include "../../unity/src/unity.h"
+
+const char* appCompileTime;
+const char* appCompileDate;
+const char* appVersion;
+const char* commCompileTime;
+const char* commCompileDate;
+const char* commVersion;
+const char* logCompileTime;
+const char* logCompileDate;
+const char* logVersion;
 
 void setUp(void)
 {
@@ -32,8 +42,11 @@ void setUp(void)
 
 void tearDown(void)
 {
+   HIDE_STDOUT
    destorySockFd(NULL);
+   RESUME_STDOUT
    system("killall nc >/dev/null 2>&1");
+   system("rm -rf ./commModule.conf");
 }
 
 void test_tcp_client_init(void)
@@ -62,7 +75,9 @@ LocalPort   = 1234 \n\"        > commModule.conf";
    TEST_ASSERT_EQUAL_INT(4+20, getSizeOfGLinkMap());
 
    //system("nc -l 1111 &");
+   HIDE_STDOUT
    commConnect("tcpClient1");
+   RESUME_STDOUT
 
    char res[100] = {0};
    int resSize = 100;
@@ -122,7 +137,9 @@ MaxLink     = 10 \n\"        > commModule.conf";
    commInit("./commModule.conf");
    TEST_ASSERT_EQUAL_INT(4+16+40, getSizeOfGLinkMap());
 
+   HIDE_STDOUT
    commConnect("tcpServer1");
+   RESUME_STDOUT
 
    char res[100] = {0};
    int resSize = 100;
@@ -158,7 +175,9 @@ MaxLink     = 3 \n\"        > commModule.conf";
    commInit("./commModule.conf");
    TEST_ASSERT_EQUAL_INT(4+16+4*3, getSizeOfGLinkMap());
 
+   HIDE_STDOUT
    commConnect("tcpServer1");
+   RESUME_STDOUT
 
    char res[100] = {0};
    int resSize = 100;
@@ -202,6 +221,7 @@ void func1(const char* logicName, const int fd, const char* recvbuf, const int r
 
 void test_commProcess(void)
 {
+   TEST_IGNORE_MESSAGE("you must comment this row to finish this test instance~");
    addCmdFunction(showFunc, "show");
    char* content = " echo \"\
 [TcpServer] \n\

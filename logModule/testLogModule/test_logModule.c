@@ -18,7 +18,8 @@
  * */
 
 #include "../logModule.h"
-#include "../../tools/tools.h"
+#include "../../toolsModule/toolsModule.h"
+#include "../../errModule/errModule.h"
 #include "unity.h"
 
 void setUp(void)
@@ -179,34 +180,51 @@ void test_log_error(void)
 
 void test_log_noInitLog_noLogConf(void)
 {
-   system("rm -rf ../logMoudle/logModule.conf");
-   log(LOG_ERROR, "hallo, i should be appear in /tmp/log/yyyymmdd/*.log");
-   system("cat /tmp/log/*/*");
-   tearDown(); //call tearDown manually before TEST_IGNORE_MESSAGE
-   TEST_IGNORE_MESSAGE("you should see two same message from above, or this test will be failed");
-   //TEST_ASSERT_TRUE("you should see two same message from above");
+   const char* logstr = "haha, i am a test string~";
+   system("rm -rf ${DFCHOME}/log/*");
+   HIDE_STDOUT
+   log(LOG_ERROR, logstr);
+   RESUME_STDOUT
+   char res[200] = {0};
+   int size = sizeof(res)/sizeof(res[0]);
+   getResultFromSystemCall("cat ${DFCHOME}/log/*/* | awk '{for(i=7;i<=NF;i++){printf $i\" \"}}'", res, &size);
+   TEST_ASSERT_EQUAL_STRING(logstr, res);
 }
 
 void test_log_noInitLog_haveLogConf(void)
 {
-   system("rm -rf ../logMoudle/logModule.conf");
-   system("echo rootPathStoreLog=\"/tmp/log/sub\" >> ../logMoudle/logModule.conf");
-   system("echo secondsSwitchLog=59 >> ../logMoudle/logModule.conf");
-   system("echo kbSwitchLog=1023 >> ../logMoudle/logModule.conf");
-   log(LOG_ERROR, "hallo, i should be appear in /tmp/log/sub/yyyymmdd/*.log");
-   system("cat /tmp/log/sub/*/*");
-   system("rm -rf ../logMoudle/logModule.conf");
+   const char* logstr = "haha, i am a test string~";
+   system("rm -rf /tmp/logModule.conf");
+   system("echo [LogModule] > /tmp/logModule.conf");
+   system("echo rootPathStoreLog=\"/tmp/log/sub\" >> /tmp/logModule.conf");
+   system("echo secondsSwitchLog=59 >> /tmp/logModule.conf");
+   system("echo kbSwitchLog=1023 >> /tmp/logModule.conf");
+   logInit("/tmp/logModule.conf");
+   HIDE_STDOUT
+   log(LOG_ERROR, logstr);
+   RESUME_STDOUT
+
+   char res[200] = {0};
+   int size = sizeof(res)/sizeof(res[0]);
+   getResultFromSystemCall("cat /tmp/log/sub/*/* | awk '{for(i=7;i<=NF;i++){printf $i\" \"}}'", res, &size);
    tearDown(); //call tearDown manually before TEST_IGNORE_MESSAGE
-   TEST_IGNORE_MESSAGE("you should see two same message from above, or this test will be failed");
+   system("rm -rf /tmp/logModule.conf");
+
+   TEST_ASSERT_EQUAL_STRING(logstr, res);
 }
 
 void test_log_switchFilesByTime(void)
 {
    TEST_IGNORE_MESSAGE("You must comment this row to finish this test");
-   system("rm -rf ../logMoudle/logModule.conf");
-   system("echo rootPathStoreLog=\"/tmp/log/sub\" >> ../logMoudle/logModule.conf");
-   system("echo secondsSwitchLog=10 >> ../logMoudle/logModule.conf");
-   system("echo kbSwitchLog=5000000 >> ../logMoudle/logModule.conf");
+
+   system("rm -rf /tmp/logModule.conf");
+   system("echo [LogModule] > /tmp/logModule.conf");
+   system("echo rootPathStoreLog=\"/tmp/log/sub\" >> /tmp/logModule.conf");
+   system("echo secondsSwitchLog=10 >> /tmp/logModule.conf");
+   system("echo kbSwitchLog=50000000 >> /tmp/logModule.conf");
+
+   logInit("/tmp/logModule.conf");
+
    while(1) {
       usleep(100);
       log(LOG_ERROR, "hallo, i should be appear in /tmp/log/sub/yyyymmdd/*.log");
@@ -217,10 +235,14 @@ void test_log_switchFilesByTime(void)
 void test_log_switchFilesBySize(void)
 {
    TEST_IGNORE_MESSAGE("You must comment this row to finish this test");
-   system("rm -rf ../logMoudle/logModule.conf");
-   system("echo rootPathStoreLog=\"/tmp/log/sub\" >> ../logMoudle/logModule.conf");
-   system("echo secondsSwitchLog=100000 >> ../logMoudle/logModule.conf");
-   system("echo kbSwitchLog=500 >> ../logMoudle/logModule.conf");
+   system("rm -rf /tmp/logModule.conf");
+   system("echo [LogModule] > /tmp/logModule.conf");
+   system("echo rootPathStoreLog=\"/tmp/log/sub\" >> /tmp/logModule.conf");
+   system("echo secondsSwitchLog=1000000 >> /tmp/logModule.conf");
+   system("echo kbSwitchLog=500 >> /tmp/logModule.conf");
+
+   logInit("/tmp/logModule.conf");
+
    while(1) {
       usleep(100);
       log(LOG_ERROR, "hallo, i should be appear in /tmp/log/sub/yyyymmdd/*.log");
@@ -233,7 +255,7 @@ void test_logErrInfo_success(void)
    int ret = initLog("/tmp/log", 123, 123);
 
    TEST_ASSERT_EQUAL_INT(LOG_SUCCESS, ret);
-   TEST_ASSERT_EQUAL_STRING("success", logErrInfo(ret));
+   TEST_ASSERT_EQUAL_STRING("success", moduleErrInfo(log, ret));
 }
 
 void test_logErrInfo_invalidInputPara(void)
@@ -241,13 +263,13 @@ void test_logErrInfo_invalidInputPara(void)
    int ret = initLog(NULL, 123, 123);
 
    TEST_ASSERT_EQUAL_INT(LOG_INVALID_INPUT_PARA, ret);
-   TEST_ASSERT_EQUAL_STRING("invalid input parameter", logErrInfo(ret));
+   TEST_ASSERT_EQUAL_STRING("invalid input parameter", moduleErrInfo(log, ret));
 }
 
 void test_logErrInfo_unknowError(void)
 {
-   TEST_ASSERT_EQUAL_STRING("unknown error", logErrInfo(-1));
-   TEST_ASSERT_EQUAL_STRING("unknown error", logErrInfo(logMAXERRNO));
-   TEST_ASSERT_EQUAL_STRING("unknown error", logErrInfo(logMAXERRNO+1));
+   TEST_ASSERT_EQUAL_STRING("unknown log module error", moduleErrInfo(log, -1));
+   TEST_ASSERT_EQUAL_STRING("unknown log module error", moduleErrInfo(log, logMAXERRNO));
+   TEST_ASSERT_EQUAL_STRING("unknown log module error", moduleErrInfo(log, logMAXERRNO+1));
 }
 

@@ -12,9 +12,10 @@ else
 	TARGET_EXTENSION=.out
 endif
 TARGET1 = $(TARGET_BASE1)$(TARGET_EXTENSION)
-SRC_FILES1=../../unity/src/unity.c ../lgModule.c  ./test_lgModule.c ./test_lgModule_Runner.c
+SRC_FILES1=../../unity/src/unity.c ../lgModule.c  ./test_lgModule.c ./test_lgModule_Runner.c ../../toolsModule/toolsModule.c
 OBJS1=${SRC_FILES1:.c=.o}
-INC_DIRS=-Isrc -I../../unity/src -I../../unity/extras/fixture/src/ -I../../unity/extras/fixture/test/ -I../ 
+INCS=-I../../platform/ -I../../errModule/ -I../../logModule/ -I../../commModule/ -I../../lgModule/ -I../../toolsModule/
+INC_DIRS=-Isrc -I../../unity/src -I../../unity/extras/fixture/src/ -I../../unity/extras/fixture/test/ -I../ ${INCS}
 SYMBOLS=-DTEST -fno-const-strings -D_LINUX 
 
 ifeq ($(OS),Windows_NT)
@@ -29,10 +30,11 @@ default:
 	@echo "start test ..."
 	@rm -rf test_lgModule_Runner.c
 	@$(TARGET1)
+	@echo
 	@echo "finish test ..."
 
 ${TARGET1}:${OBJS1}
-	@${C_COMPILER} -o ${TARGET1} ${SYMBOLS} ${OBJS1} ${INC_DIRS} ${LIB} 
+	@${C_COMPILER} -o ${TARGET1} ${SYMBOLS} ${OBJS1} ${INCS} ${INC_DIRS} ${LIB} 
 
 .c.o:
 	@${C_COMPILER} -o $@ -c ${INC_DIRS} $<

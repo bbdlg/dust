@@ -40,6 +40,7 @@
  *    2、调用log宏写日志。log的用法如：
  *          log(DEBUG, "%d-%s", 123, "this is a test message~");
 *****************************************************************************/
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

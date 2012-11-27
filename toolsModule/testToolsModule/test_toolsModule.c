@@ -17,7 +17,7 @@
  * along with DFC. If not, see <http://www.gnu.org/licenses/>.
  * */
 
-#include "../tools.h"
+#include "../toolsModule.h"
 #include "../../unity/src/unity.h"
 
 void setUp(void)
@@ -79,7 +79,7 @@ LocalPort   = 1234 \n\n";
    int size = MAX_LEN_ROW;
    int ret = getValueOfKey(section, "LogicName", res, &size);
    TEST_ASSERT_EQUAL_INT(TOOLS_SUCCESS, ret);
-   TEST_ASSERT_EQUAL_STRING("\"tcpC lient3\"", res);
+   TEST_ASSERT_EQUAL_STRING("tcpC lient3", res);
 
    memset(res, 0, MAX_LEN_ROW);
    size = MAX_LEN_ROW;

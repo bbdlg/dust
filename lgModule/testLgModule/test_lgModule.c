@@ -20,6 +20,16 @@
 #include "../lgModule.h"
 #include "unity.h"
 
+const char* appCompileTime;
+const char* appCompileDate;
+const char* appVersion;
+const char* commCompileTime;
+const char* commCompileDate;
+const char* commVersion;
+const char* logCompileTime;
+const char* logCompileDate;
+const char* logVersion;
+
 void setUp(void)
 {
 
@@ -41,12 +51,12 @@ void test_welcomeLp(void)
    char sendbuf[1024] = {0};
    int sendlen = 0;
    welcomeLp(sendbuf, &sendlen);
-   TEST_ASSERT_EQUAL_STRING("WELCOME TO LGMODULE\nlpsay: ", sendbuf);
+   TEST_ASSERT_EQUAL_STRING("WELCOME TO LGMODULE\nlpsays>> ", sendbuf);
    
    initLgModule("HALLO, BB~");
    memset(sendbuf, 0, sizeof(sendbuf)/sizeof(sendbuf[0]));
    welcomeLp(sendbuf, &sendlen);
-   TEST_ASSERT_EQUAL_STRING("HALLO, BB~\nlpsay: ", sendbuf);
+   TEST_ASSERT_EQUAL_STRING("HALLO, BB~\nlpsays>> ", sendbuf);
 }
 
 void exampleCmdFunction(int argc, char* argv[])
@@ -76,11 +86,11 @@ void test_procLgModule(void)
    int sendlen = 0;
 
    procLgModule(recvbuf, strlen(recvbuf), sendbuf, &sendlen);
-   TEST_ASSERT_EQUAL_STRING("4t321testcmd\nlpsay: ", sendbuf);
+   TEST_ASSERT_EQUAL_STRING("4t321testcmd\n\nlpsays>> ", sendbuf);
 
    memset(sendbuf, 0, sizeof(sendbuf)/sizeof(sendbuf[0]));
    procLgModule(recvbuf, strlen(recvbuf), sendbuf, &sendlen);
-   TEST_ASSERT_EQUAL_STRING("4t321testcmd\nlpsay: ", sendbuf);
+   TEST_ASSERT_EQUAL_STRING("4t321testcmd\n\nlpsays>> ", sendbuf);
 }
 
 void test_procLgModule_notAddFunc(void)
@@ -89,6 +99,6 @@ void test_procLgModule_notAddFunc(void)
    char sendbuf[1024] = {0};
    int sendlen = 0;
    procLgModule(recvbuf, strlen(recvbuf), sendbuf, &sendlen);
-   TEST_ASSERT_EQUAL_STRING("no such command\nlpsay: ", sendbuf);
+   TEST_ASSERT_EQUAL_STRING("no such command\n\nlpsays>> ", sendbuf);
 }
 

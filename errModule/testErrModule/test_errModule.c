@@ -42,3 +42,9 @@ void test_moduleErrInfo(void)
    TEST_ASSERT_EQUAL_STRING("unknown log module error", moduleErrInfo(log, logMAXERRNO+1));
    //log(LOG_DEBUG, "module:<%s>, errno:<%d>, msg:<%s>", "log", EA, moduleErrInfo(log, EA));
 }
+void test_moduleVersion(void)
+{
+   const char* abcVersion = "x.y.z";
+   TEST_ASSERT_EQUAL_STRING("x.y.z", moduleVersion(abc));
+}
+

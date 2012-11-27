@@ -12,7 +12,7 @@ else
 	TARGET_EXTENSION=.out
 endif
 TARGET1 = $(TARGET_BASE1)$(TARGET_EXTENSION)
-SRC_FILES1=../../unity/src/unity.c ./test_toolsModule.c ./test_toolsModule_Runner.c ../tools.c
+SRC_FILES1=../../unity/src/unity.c ./test_toolsModule.c ./test_toolsModule_Runner.c ../toolsModule.c
 OBJS1=${SRC_FILES1:.c=.o}
 INC_DIRS=-Isrc -I../../unity/src -I../../unity/extras/fixture/src/ -I../../unity/extras/fixture/test/ -I../
 SYMBOLS=-DTEST -fno-const-strings 

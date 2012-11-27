@@ -163,7 +163,7 @@ void lgCmdFuncHelp(int argc, char* argv[])
    for(i=0; i<MAX_CMD_FUNCTION; i++) {
       if(poolCmdFunction[i].cmd) {
          if(0 == i%3) term("\n");
-         term("%+10s", poolCmdFunction[i].cmd);
+         term("%10s", poolCmdFunction[i].cmd);
       }
    }
    return;
