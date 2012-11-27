@@ -18,7 +18,7 @@ or
    </tmp/test> is a valid directory, now <crop_x.y.z> will be installed there.
    /tmp/test/crop_x.y.z is the work space.
 
-Reentry your user account, or enter "source ~/.bash_profile" to make the self-starting in operation.
+Reentry your user account, or enter <source ~/.bash_profile> to make the envionment variables in operation.
 Remember: here it is  "$DFCHOME/bin/your_program_name".
 
 2 Self-starting
@@ -49,7 +49,7 @@ Enjoy~
    </tmp/test> is a valid directory, now <crop_x.y.z> will be installed there.
    /tmp/test/crop_x.y.z is the work space.
 
-重新进入一下你所在的账户或 source ~/.bash_profile 使环境变量生效。
+重新进入一下你所在的账户或输入 source ~/.bash_profile 使环境变量生效。
 哦了，现在你可以玩你的程序了~ 记住，它在这里：$DFCHOME/bin/你的程序名
 
 2 开机自启动

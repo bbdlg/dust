@@ -42,5 +42,6 @@ source ~/.bash_profile
 chmod +x ${DFCHOME}/bin/*
 
 echo "${DFCHOME} is the work space."
+echo "Reentry your user account, or enter <source ~/.bash_profile> to make the envionment variables in operation."
 echo
 
