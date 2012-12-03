@@ -36,7 +36,13 @@ logModule/testLogModule/makefile
 logModule/testLogModule/start_test.sh
 logModule/testLogModule/test_logModule.c
 memModule/makefile
+memModule/memModule.c
+memModule/memModule.h
+memModule/memwatch.c
+memModule/memwatch.h
 memModule/testMemModule/makefile
+memModule/testMemModule/start_test.sh
+memModule/testMemModule/test_memModule.c
 platform/crop_README
 platform/crop_install.sh
 platform/dust2farm.sh
@@ -50,6 +56,7 @@ platform/farm_userapp.c
 platform/farm_userapp.h
 platform/main.c
 platform/main.h
+script/generate_manifest.sh
 toolsModule/testToolsModule/makefile
 toolsModule/testToolsModule/start_test.sh
 toolsModule/testToolsModule/test_toolsModule.c
