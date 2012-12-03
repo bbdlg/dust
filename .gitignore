@@ -17,3 +17,6 @@
 # test tools - unity
 unity
 
+# log file
+*.log
+
