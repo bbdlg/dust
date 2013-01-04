@@ -1,0 +1,8 @@
+message(STATUS "now complie <lg> module")
+add_library(lg lgModule.c)
+include_directories(${PROJECT_SOURCE_DIR}/toolsModule)
+include_directories(${PROJECT_SOURCE_DIR}/commModule)
+include_directories(${PROJECT_SOURCE_DIR}/logModule)
+include_directories(${PROJECT_SOURCE_DIR}/lgModule)
+include_directories(${PROJECT_SOURCE_DIR}/errModule)
+include_directories(${PROJECT_SOURCE_DIR}/platform)

@@ -1,0 +1,6 @@
+project(dust)
+add_subdirectory(commModule bin)
+add_subdirectory(toolsModule bin)
+add_subdirectory(logModule bin)
+add_subdirectory(lgModule bin)
+add_subdirectory(platform bin)
