@@ -17,7 +17,7 @@
  * along with DFC. If not, see <http://www.gnu.org/licenses/>.
  * */
 
-#include "toolsModule.h"
+#include "moduleTools.h"
 
 int getResultFromSystemCall(const char* pCmd, char* pResult, int* size)
 {

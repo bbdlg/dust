@@ -1,5 +1,5 @@
-message(STATUS "now complie <lg> module")
-add_library(lg lgModule.c)
+message(STATUS "now process <lg> module ...")
+add_library(lg moduleLg.c)
 include_directories(${PROJECT_SOURCE_DIR}/moduleTools)
 include_directories(${PROJECT_SOURCE_DIR}/moduleComm)
 include_directories(${PROJECT_SOURCE_DIR}/moduleLog)

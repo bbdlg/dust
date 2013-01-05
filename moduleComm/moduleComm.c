@@ -17,7 +17,7 @@
  * along with DFC. If not, see <http://www.gnu.org/licenses/>.
  * */
 
-#include "commModule.h"
+#include "moduleComm.h"
 
 const char* commVersion = "1.0.0";
 const char* commCompileDate = __DATE__;
@@ -26,7 +26,7 @@ const char* commCompileTime = __TIME__;
 void* gLinkMap = NULL;
 char gRecvBuf[MAX_LEN_BUF];
 struct timeval timeOutOfSelect = {0, 100000}; //default timeout: 100ms
-const char* defaultConfigFilePath = "./commModule.conf";
+const char* defaultConfigFilePath = "./moduleComm.conf";
 
 const char* commErrInfo[commMAXERRNO] = {
    "success",

@@ -40,10 +40,10 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/select.h>
-#include "toolsModule.h"
+#include "moduleTools.h"
 #ifdef LOG
-   #include "logModule.h"
-   #include "errModule.h"
+   #include "moduleLog.h"
+   #include "moduleErr.h"
 #endif
 
 /*

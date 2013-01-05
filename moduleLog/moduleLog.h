@@ -50,9 +50,9 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-#include "toolsModule.h"
+#include "moduleTools.h"
 #ifdef LOG
-   #include "errModule.h"
+   #include "moduleErr.h"
 #endif
 
 extern const char* logVersion;

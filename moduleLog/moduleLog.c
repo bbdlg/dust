@@ -17,13 +17,13 @@
  * along with DFC. If not, see <http://www.gnu.org/licenses/>.
  * */
 
-#include "logModule.h"
+#include "moduleLog.h"
 
 const char* logVersion = "1.0.0";
 const char* logCompileDate = __DATE__;
 const char* logCompileTime = __TIME__;
 
-const char* logConfFile = "../logMoudle/logModule.conf";
+const char* logConfFile = "../logMoudle/moduleLog.conf";
 const char* defaultRootPathStoreLog = "/log";
 const int   defaultSecondsSwitchLog = 60;
 const int   defaultKbSwitchLog = 1024;

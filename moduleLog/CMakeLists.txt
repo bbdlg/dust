@@ -1,3 +1,3 @@
-message(STATUS "now complie <log> module")
-add_library(log logModule.c)
+message(STATUS "now process <log> module ...")
+add_library(log moduleLog.c)
 include_directories(${PROJECT_SOURCE_DIR}/moduleTools)

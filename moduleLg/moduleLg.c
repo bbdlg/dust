@@ -17,7 +17,7 @@
  * along with DFC. If not, see <http://www.gnu.org/licenses/>.
  * */
 
-#include "lgModule.h"
+#include "moduleLg.h"
 
 const char* lgVersion = "1.0.0";
 const char* lgCompileDate = __DATE__;
