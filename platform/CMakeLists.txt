@@ -20,3 +20,10 @@ include_directories(${PROJECT_SOURCE_DIR}/moduleLog)
 include_directories(${PROJECT_SOURCE_DIR}/moduleLg)
 include_directories(${PROJECT_SOURCE_DIR}/moduleErr)
 include_directories(${PROJECT_SOURCE_DIR}/platform)
+
+add_definitions(-g)
+add_definitions(-DTCP_SERVER_MODE)
+add_definitions(-DTCP_CLIENT_MODE)
+add_definitions(-DUDP_MODE)
+add_definitions(-DLOG)
+

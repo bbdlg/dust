@@ -38,6 +38,7 @@ const char* commErrInfo[commMAXERRNO] = {
    "listen fd failed",
    "connect fd failed",
    "set socket option failed",
+   "unknown udp mode",
 };
 
 int setSocketNonBlock(int nSocketFd)
@@ -414,6 +415,140 @@ accept:
 }
 #endif
 
+#ifdef UDP_MODE
+int initUdpInfo(const char* configFilePath)
+{
+   int sizeRes = MAX_LEN_VALUE;
+   char res[MAX_LEN_VALUE] = {0};
+   int sumUdp = readValueFromConf_ext(configFilePath, 0, "Udp", "anything", res, &sizeRes);
+   //printf("sumUdp is <%d>, config file path is <%s>\n", sumUdp, configFilePath);
+   while(sumUdp--) {
+      char* logicName = NULL;
+      UdpInfoObject* udpInfoObject = (UdpInfoObject*)malloc(sizeof(UdpInfoObject));
+
+      //read value from config file
+      sizeRes = MAX_LEN_VALUE;
+      memset(res, 0, sizeRes);
+      if(TOOLS_CANNOT_FIND_VALUES == readValueFromConf_ext(configFilePath, sumUdp+1, "Udp", "LogicName", res, &sizeRes)) {
+         printf("error: can't get LogicName in %d lines!\n", __LINE__);
+         continue;
+      }
+      logicName = (char*)malloc(sizeRes+1);
+      memcpy(logicName, res, sizeRes);
+      logicName[sizeRes] = 0;
+
+      sizeRes = MAX_LEN_VALUE;
+      memset(res, 0, sizeRes);
+      if(TOOLS_CANNOT_FIND_VALUES == readValueFromConf_ext(configFilePath, sumUdp+1, "Udp", "DestIp", res, &sizeRes)) {
+         printf("error: can't get DestIp %d lines!\n", __LINE__);
+         continue;
+      }
+      udpInfoObject->destIp = (char*)malloc(sizeRes+1);
+      //DEBUG("IP p=%p,<%s>len<%d>", udpInfoObject->destIp, res, sizeRes);
+      memcpy(udpInfoObject->destIp, res, sizeRes);
+      udpInfoObject->destIp[sizeRes] = 0;
+
+      sizeRes = MAX_LEN_VALUE;
+      memset(res, 0, sizeRes);
+      if(TOOLS_CANNOT_FIND_VALUES == readValueFromConf_ext(configFilePath, sumUdp+1, "Udp", "DestPort", res, &sizeRes)) {
+         printf("error: can't get DestPort in %d lines!\n", __LINE__);
+         continue;
+      }
+      udpInfoObject->destPort = atoi(res);
+
+      sizeRes = MAX_LEN_VALUE;
+      memset(res, 0, sizeRes);
+      if(TOOLS_CANNOT_FIND_VALUES == readValueFromConf_ext(configFilePath, sumUdp+1, "Udp", "LocalPort", res, &sizeRes)) {
+         printf("error: can't get LocalPort in %d lines!\n", __LINE__);
+         continue;
+      }
+      udpInfoObject->localPort = atoi(res);
+
+      udpInfoObject->state          = DISCONNECTED;
+      udpInfoObject->registerFunc   = NULL;
+      udpInfoObject->dataProcFunc   = NULL;
+      
+      //check udp mode
+    /* udpserver: destIp null, destPort null, localPort not null.
+    * udpclient: destIp not null, destPort not null, localPort any.
+    * udp multicast server: destIp not null, destPort null, localPort not null.
+    * udp multicast client: destIp not null, destPort not null, localPort null.
+    * multicast destIp must be in 224.0.0.0 ~ 239.255.255.255.
+    */
+      int udp_mode = UNKNOWN_TYPE;
+      if((inet_addr(udpInfoObject->destIp) == INADDR_NONE) && (udpInfoObject->destPort <= 0) && (udpInfoObject->localPort > 0)) {
+         printf("-- udp <%s> is udpserver\n", logicName);
+         udp_mode = UDPSERVER;
+      }
+      else if((inet_addr(udpInfoObject->destIp) != INADDR_NONE) && (udpInfoObject->destPort > 0) && (udpInfoObject->localPort <= 0)) {
+         printf("-- udp <%s> is udpclient\n", logicName);
+         udp_mode = UDPCLIENT;
+      }
+      else {
+         printf("-- unknown udp mode\n");
+      }
+
+      //fill gLinkMap
+      gLinkMap = realloc(gLinkMap, (getSizeOfGLinkMap() + 4*sizeof(int) + 1*sizeof(int)));
+      int x = getSizeOfGLinkMap();
+      *((char**)MpLogicName(x))                   = logicName;
+      *((int*)MtypeOfMap(x))                      = udp_mode;
+      *((UdpInfoObject**)MpMapLinkInfo(x))        = udpInfoObject;
+      *((int*)MsumOfFd(x))                        = 1;  //sum of udp  is 1
+      MinitPoolOfFd(x);
+      *((int*)MsumOfMap)                          = *((int*)MsumOfMap) + 1;
+      
+      //debug
+      //DEBUGINFO("size of glinkemap is %d", getSizeOfGLinkMap());
+      int _i=0;
+      for(_i=0; _i<64; _i++) {
+         //printf("%02X ", *(unsigned char*)(gLinkMap+_i));
+      }
+      //DEBUGINFO();
+   }
+
+   return COMM_SUCCESS;
+}
+
+int connectUdp(int baseOfMap)
+{
+   if((CONNECTED == (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->state) 
+         && (fdInitValue != *(int*)MbasePoolOfFd(baseOfMap))) {
+      return COMM_SUCCESS;
+   }
+
+   UdpInfoObject* udpInfoObject = *(UdpInfoObject**)MpMapLinkInfo(baseOfMap);
+   int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+   if(0 > sockfd) {
+      return COMM_CREATE_FD_ERROR;
+   }
+   struct sockaddr_in serverAddr;
+   serverAddr.sin_family       = AF_INET;
+   serverAddr.sin_port         = htons(udpInfoObject->destPort);
+   serverAddr.sin_addr.s_addr  = inet_addr(udpInfoObject->destIp);
+   bzero(&(serverAddr.sin_zero), 8);
+
+   setSocketNonBlock(sockfd);
+
+   if(-1 == connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr))) {
+      printf("connect error!\n");
+      return COMM_CONNECT_FAILED;
+   }
+
+   *((int*)MbasePoolOfFd(baseOfMap)) = sockfd;
+   (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
+
+   if((*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->registerFunc) {
+      int sendlen = MAX_LEN_BUF;
+      memset(gRecvBuf, 0, MAX_LEN_BUF);
+      (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->registerFunc(gRecvBuf, &sendlen); //borrow gRecvBuf
+      commSend(sockfd, gRecvBuf, &sendlen);
+   }
+
+   return COMM_SUCCESS;
+}
+#endif
+
 int commInit(const char* configFilePath)
 {
    int ret;
@@ -436,7 +571,10 @@ int commInit(const char* configFilePath)
    }
 #endif
 #ifdef UDP_MODE
-   //do something
+   ret = initUdpInfo(_configFilePath);
+   if(ret) {
+      return ret;
+   }
 #endif
 
    return COMM_SUCCESS;

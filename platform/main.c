@@ -29,8 +29,22 @@ void procLpMsg(const char* logicName, const int fd, const char* recvbuf, const i
    commSend(fd, sendbuf, &sendlen);
 }
 
+void showVersion(void)
+{
+   printf("gcc: %s\n", __VERSION__);
+   printf("module: %s, \tversion: %s, \tcompile: %s %s\n", "app",   moduleVersion(app),  moduleCompileDate(app),    moduleCompileTime(app) );
+   printf("module: %s, \tversion: %s, \tcompile: %s %s\n", "comm",  moduleVersion(comm), moduleCompileDate(comm),   moduleCompileTime(comm));
+   printf("module: %s, \tversion: %s, \tcompile: %s %s\n", "log",   moduleVersion(log),  moduleCompileDate(log),    moduleCompileTime(log));
+   printf("module: %s, \tversion: %s, \tcompile: %s %s\n", "lg",    moduleVersion(lg),   moduleCompileDate(lg),     moduleCompileTime(lg));
+   printf("\n");
+}
+
 int main(int argc, char** argv)
 {
+   if(argv[1] && (0 == strcmp(argv[1], "-v"))) {
+      showVersion();
+      exit(1);
+   }
    int ret,i;
    char tmp[256] = {0};
    struct timeval curTimeval;

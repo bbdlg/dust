@@ -66,6 +66,7 @@ enum commErrNo {
    COMM_LISTEN_FAILED,
    COMM_CONNECT_FAILED,
    COMM_SET_SOCKET_FAILED,
+   COMM_UNKNOWN_UDP_MODE,
    commMAXERRNO
 };
 extern const char* commErrInfo[commMAXERRNO];
@@ -81,7 +82,10 @@ enum SortOfCommunication {
    TCPSERVER,
 #endif
 #ifdef UDP_MODE
-   UDP,
+   UDPSERVER,
+   UDPCLIENT,
+   UDP_MULTICAST_SERVER,
+   UDP_MULTICAST_CLIENT,
 #endif
    //SERIAL,
    //CAN,
@@ -189,6 +193,24 @@ typedef struct {
    int   serverPort;
    int   state;
 }TcpServerInfoObject;
+#endif
+
+#ifdef UDP_MODE
+/*
+ * udpserver: destIp null, destPort null, localPort not null.
+ * udpclient: destIp not null, destPort not null, localPort any.
+ * udp multicast server: destIp not null, destPort null, localPort not null.
+ * udp multicast client: destIp not null, destPort not null, localPort null.
+ * multicast destIp must be in 224.0.0.0 ~ 239.255.255.255.
+ * */
+typedef struct {
+   RegisterFunc* registerFunc;
+   DataProcFunc* dataProcFunc;
+   char* destIp;
+   int   destPort;
+   int   localPort;
+   int   state;
+}UdpInfoObject;
 #endif
 
 #endif
