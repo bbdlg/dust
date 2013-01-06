@@ -1,9 +1,0 @@
-bin_PROGRAMS=demo
-demo_SOURCES=${DFCHOME}/src/userapp.c
-demo_LDADD=${DFCHOME}/lib/libdust.a
-demo_LDFLAGS=-DTCP_SERVER_MODE
-INCLUDES=-I${DFCHOME}/include/
-DEFS+=-DTCP_SERVER_MODE
-DEFS+=-DLOG
-DEFS+=-ggdb3
-AUTOMAKE_OPTIONS=foreign

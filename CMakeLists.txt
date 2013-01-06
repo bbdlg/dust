@@ -1,6 +1,2 @@
-project(dust)
-add_subdirectory(moduleComm bin)
-add_subdirectory(moduleTools bin)
-add_subdirectory(moduleLog bin)
-add_subdirectory(moduleLg bin)
+project(dfc)
 add_subdirectory(platform bin)

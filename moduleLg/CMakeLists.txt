@@ -1,8 +1,0 @@
-message(STATUS "now process <lg> module ...")
-add_library(lg moduleLg.c)
-include_directories(${PROJECT_SOURCE_DIR}/moduleTools)
-include_directories(${PROJECT_SOURCE_DIR}/moduleComm)
-include_directories(${PROJECT_SOURCE_DIR}/moduleLog)
-include_directories(${PROJECT_SOURCE_DIR}/moduleLg)
-include_directories(${PROJECT_SOURCE_DIR}/moduleErr)
-include_directories(${PROJECT_SOURCE_DIR}/platform)
