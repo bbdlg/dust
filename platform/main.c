@@ -26,7 +26,7 @@ void procLpMsg(const char* logicName, const int fd, const char* recvbuf, const i
    char sendbuf[1024] = {0};
    int sendlen = 0;
    procLgModule(recvbuf, recvlen, sendbuf, &sendlen);
-   commSend(fd, sendbuf, &sendlen);
+   commSend(fd, sendbuf, &sendlen, NULL);
 }
 
 void showVersion(void)

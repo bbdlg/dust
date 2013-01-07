@@ -4,7 +4,7 @@ exec_target=dfc
 
 function help()
 {
-   echo "Usage: $0 [help|dust|farm|clean|distclean]"
+   echo "Usage: $0 [help|dust|debug|farm|clean|distclean]"
    echo "   help,       show this information;"
    echo "   dust,       generate executable file: ${exec_target};"
    echo "   farm,       generate FARM develop platform, you may add a version after 'farm', eg: $0 farm 1.0.0;"
@@ -23,6 +23,9 @@ elif [ "$1" = "clean" ]; then
    make clean
 elif [ "$1" = "distclean" ]; then
    ls | grep -v `basename $0` | xargs rm -rf 
+elif [ "$1" = "debug" ]; then
+   cmake -Wno-dev -Ddebug_mode=on -Ddust2farm:bool=off --build .. && make
+   mv bin/${exec_target} .
 elif [ "$1" = "dust" -o "$1" = "" ]; then
    cmake -Wno-dev -Ddust2farm:bool=off --build .. && make
    mv bin/${exec_target} .

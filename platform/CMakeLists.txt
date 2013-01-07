@@ -21,9 +21,13 @@ include_directories(${PROJECT_SOURCE_DIR}/moduleLg)
 include_directories(${PROJECT_SOURCE_DIR}/moduleErr)
 include_directories(${PROJECT_SOURCE_DIR}/platform)
 
+if(debug_mode)
+   add_definitions(-DDEBUG)
+endif(debug_mode)
 add_definitions(-g)
 add_definitions(-DTCP_SERVER_MODE)
 add_definitions(-DTCP_CLIENT_MODE)
 add_definitions(-DUDP_MODE)
 add_definitions(-DLOG)
+
 

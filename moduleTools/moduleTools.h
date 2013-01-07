@@ -59,7 +59,7 @@ enum toolsErrNo {
 
 #define DEBUGERROR(format, ...)    printf("[%s]<line:%d> "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stdout)
 #define DEBUGINFO(format, ...)    printf("[%s]<line:%d>"format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stdout)
-#define DEBUG DEBUGINFO
+//#define DEBUG DEBUGINFO
 
 /* hide and resume print on the screen */
 #define HIDE_STDOUT  do { \

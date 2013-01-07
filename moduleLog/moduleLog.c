@@ -187,8 +187,11 @@ int _log(enum LogLevel level, char* function, char* file, int line,  char* msg)
       fprintf(_fp_log, "%ld %06ld %s %s %s %d %s\n", tv.tv_sec, tv.tv_usec, logLevelStr[level], function, file, line, msg);
       fflush(_fp_log);
    }
-   //fprintf(stdout, "%ld %06ld %s %s %s %s %d\n", tv.tv_sec, tv.tv_usec, logLevelStr[level], msg, function, file, line);
+#ifdef DEBUG
+   fprintf(stdout, "%ld %06ld %s %s %s %s %d\n", tv.tv_sec, tv.tv_usec, logLevelStr[level], msg, function, file, line);
+#else
    fprintf(stdout, "%ld %06ld %s %s\n", tv.tv_sec, tv.tv_usec, logLevelStr[level], msg);
+#endif
 
    return LOG_SUCCESS;
 }

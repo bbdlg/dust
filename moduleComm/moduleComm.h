@@ -125,18 +125,23 @@ extern int commInit(const char* configFilePath);
  * interface of recv data
  * recvBuf and recvLen are all Value-result parameter.
  * */
-extern int commRecv(int *fd, char* recvBuf, int* recvLen);
+extern int commRecv(int *fd, char* recvBuf, int* recvLen, struct sockaddr* from);
 
 /*
  * interface of send data
  * */
-extern int commSend(int fd, const char* sendBuf, int* sendLen);
+extern int commSend(int fd, const char* sendBuf, int* sendLen, struct sockaddr* to);
 
 /*
  * get all file descriptors associated with logicName.
  * put fd in pFd, and sum of fd in sumFd.
  * */
 extern int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd);
+
+/*
+ * return the position of logicName in gLinkMap.
+ * */
+extern int commGetLogicNamePos(const char* logicName);
 
 /*
  * if logicName is null, it will maintain all logicNames,
@@ -167,7 +172,8 @@ extern int commProcess(void);
 #define MpLogicName(x)              MbaseMap(x)
 #define MtypeOfMap(x)               (MpLogicName(x) + sizeof(char*))
 #define MpMapLinkInfo(x)            (MtypeOfMap(x) + sizeof(int))
-#define MsumOfFd(x)                 (MpMapLinkInfo(x) + sizeof(int*))
+#define MsockaddrFrom(x)            (MpMapLinkInfo(x) + sizeof(int*))
+#define MsumOfFd(x)                 (MsockaddrFrom(x) + sizeof(struct sockaddr))
 #define MbasePoolOfFd(x)            (MsumOfFd(x) + sizeof(int))
 #define fdInitValue                 -1
 #define MinitPoolOfFd(x)            memset(MbasePoolOfFd(x), fdInitValue, (*(int*)MsumOfFd(x) * sizeof(int)))

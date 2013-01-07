@@ -24,24 +24,51 @@ const char* appVersion     = "1.0.0";
 const char* appCompileDate = __DATE__;
 const char* appCompileTime = __TIME__;
 
+
+void procUdpMsg(const char* logicName, const int fd, const char* recvbuf, const int recvlen)
+{
+   char sendbuf[1024] = {0};
+   sprintf(sendbuf, "haha, i recv <%d> bytes from u~", recvlen);
+   int sendlen = strlen(sendbuf);
+
+   printf("recv: [%s]\n", recvbuf);
+   int len = sizeof(struct sockaddr);
+   commSend(fd, sendbuf, &sendlen, (struct sockaddr*)MsockaddrFrom(commGetLogicNamePos(logicName)));
+}
+
+
 /*
  * 初始化函数
  * 可在本函数中调用下列函数：
  * 注册配置文件解析函数，可多次调用
  * extern int registerCommFunc(ConfAnalyzeFunc* func);
  * 注册数据处理回调函数，可多次调用
- * extern int registerCommFunc(const char* runPara, const char* logicName, RegisterFunc* registerFunc, DataProcFunc* dataProcFunc);
+ * extern int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataProcFunc* dataProcFunc);
  * 注册外部命令响应函数，可多次调用
  * extern int addCmdFunction(CmdFunction function, const char* name);
  */
 void initAll(void)
 {
+   int ret = commSetFunc("Udp-1", NULL, &procUdpMsg);
    return;
 }
 
 /* 该函数将在主循环中循环被调用 */
 void checkEvent(const struct timeval curTimeval)
 {
+   /*
+   char* data = "hallo world!\n";
+   char recvdata[1024] = {0};
+   int datalen = strlen(data);
+   int sum;
+   int* pFd = NULL;
+   commGetAliveLinks("Udp-1", &sum, &pFd);
+   if(*pFd > 0) {
+      commSend(*pFd, data, &datalen);
+      DEBUGINFO("send <%d> bytes~", datalen);
+   }
+   sleep(1);
+   */
    return;
 }
 
