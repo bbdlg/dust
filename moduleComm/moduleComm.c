@@ -24,6 +24,7 @@ const char* commCompileDate = __DATE__;
 const char* commCompileTime = __TIME__;
 
 void* gLinkMap = NULL;
+CommFlag gCommFlag;
 char gRecvBuf[MAX_LEN_BUF];
 struct timeval timeOutOfSelect = {0, 100000}; //default timeout: 100ms
 const char* defaultConfigFilePath = "./moduleComm.conf";
@@ -39,6 +40,7 @@ const char* commErrInfo[commMAXERRNO] = {
    "connect fd failed",
    "set socket option failed",
    "unknown udp mode",
+   "connection has disconnected",
 };
 
 int setSocketNonBlock(int nSocketFd)
@@ -241,7 +243,6 @@ int connectTcpClient(int baseOfMap)
    setSocketNonBlock(sockfd);
 
    if (-1 == connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr))) {
-      printf("connect error!\n");
       return COMM_CONNECT_FAILED;
    }
 
@@ -540,7 +541,6 @@ int connectUdp(int baseOfMap)
       return COMM_CONNECT_FAILED;
    }
    if(-1 == ret) {
-      perror("connect error!\n");
       return COMM_CONNECT_FAILED;
    }
 
@@ -582,6 +582,9 @@ int commInit(const char* configFilePath)
    }
 #endif
 
+   /* init global varible */
+   memset(&gCommFlag, ON, sizeof(CommFlag));
+
    return COMM_SUCCESS;
 }
 
@@ -598,7 +601,7 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
    else {
 #ifdef UDP_MODE
       int len = sizeof(struct sockaddr);
-      *recvLen = recvfrom(*fd, recvBuf, *recvLen, MSG_DONTWAIT, from, &len);
+      *recvLen = recvfrom(*fd, recvBuf, *recvLen, MSG_DONTWAIT, (struct sockaddr*)from, &len);
 #endif
    }
 
@@ -612,6 +615,7 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
 #endif
          close(*fd);
          *fd = fdInitValue;
+         return COMM_DISCONNECTED;
       }
    }
 
@@ -621,10 +625,29 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
    }
 #endif
 
+   //trace
+   if(gCommFlag.tcpClientTrace || gCommFlag.tcpServerTrace || gCommFlag.udpClientTrace || gCommFlag.udpServerTrace) {
+      int pos = commGetMposByFd(*fd);
+      switch(*(int*)MtypeOfMap(pos)) {
+#ifdef TCP_CLIENT_MODE
+         case TCPCLIENT:
+            if(ON == gCommFlag.tcpClientTrace) {
+               (*(TcpClientInfoObject**)MpMapLinkInfo(pos))->recordObj.recvPacket++;
+               (*(TcpClientInfoObject**)MpMapLinkInfo(pos))->recordObj.recvByte += *recvLen;
+            }
+            if(ON == gCommFlag.tcpClientPrint) {
+               hexdump(recvBuf, *recvLen, "get msg :");
+            }
+            break;
+#endif
+      }
+
+   }
+
    return COMM_SUCCESS;
 }
 
-int commSend(int fd, const char* sendBuf, int* sendLen, struct sockaddr* to)
+int commSend(int fd, const char* sendBuf, int* sendLen, void* to)
 {
    if(0 == sendLen) {
       //warning
@@ -634,7 +657,7 @@ int commSend(int fd, const char* sendBuf, int* sendLen, struct sockaddr* to)
       *sendLen = send(fd, sendBuf, *sendLen, MSG_DONTWAIT);
    }
    else {
-      *sendLen = sendto(fd, sendBuf, *sendLen, MSG_DONTWAIT, to, sizeof(struct sockaddr));
+      *sendLen = sendto(fd, sendBuf, *sendLen, MSG_DONTWAIT, (struct sockaddr*)to, sizeof(struct sockaddr));
    }
 
 #ifdef LOG
@@ -666,18 +689,36 @@ int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd)
    return COMM_INVALID_LOGICNAME;
 }
 
-int commGetLogicNamePos(const char* logicName)
+int commGetMposByLogicName(const char* logicName)
 {
    int _sumOfMap = *(int*)gLinkMap;
    int _curMapStart = sizeof(int);
    while(_sumOfMap--) {
       if(0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName)) {
-         break;
+         return _curMapStart;
       }
       _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
    }
 
-   return _curMapStart;
+   return 0;
+}
+
+int commGetMposByFd(const int fd)
+{
+   int _sumOfMap = *(int*)gLinkMap;
+   int _curMapStart = sizeof(int);
+   while(_sumOfMap--) {
+      int i=0;
+      for(i=0; i<*(int*)MsumOfFd(_curMapStart); i++) {
+         if(fd == *((int*)MbasePoolOfFd(_curMapStart)+i)) {
+            return _curMapStart;
+         }
+      }
+      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+   }
+
+   //cant't find Map Position.
+   return 0;
 }
 
 int commConnect(const char* logicName)
@@ -710,7 +751,7 @@ int commConnect(const char* logicName)
 #ifdef LOG
          log(LOG_WARNING, "unknow map type:<%d>", *(int*)MtypeOfMap(_curMapStart));
 #else
-         DEBUG("unknow map type:<%d>", *(int*)MtypeOfMap(_curMapStart));
+         DEBUGINFO("unknow map type:<%d>", *(int*)MtypeOfMap(_curMapStart));
 #endif
       }
       else {
@@ -850,7 +891,6 @@ int commProcess(void)
                if(recvlen <= 0) {
                   continue;
                }
-               memcpy(, &sAddr, sizeof(struct sockaddr));
                (*(UdpInfoObject**)MpMapLinkInfo(_curMapStart))->dataProcFunc( *(char**)MpLogicName(_curMapStart), *((int*)MbasePoolOfFd(_curMapStart)+i), gRecvBuf, recvlen, &sAddr);
            }
 #endif

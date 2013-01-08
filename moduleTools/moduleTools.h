@@ -110,5 +110,6 @@ extern int readValueFromConf_ext(const char* filePath, const int times, const ch
 extern int getResultFromSystemCall(const char* pCmd, char* pResult, int* size);
 extern int getSection(const char* filePath, const int times, const char* field, char* section);
 extern int getValueOfKey(const char* section, const char* key, char* res, int* size);
+extern void hexdump(const void* _data, size_t size, const char* info);
 
 #endif

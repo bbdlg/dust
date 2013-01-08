@@ -62,7 +62,7 @@ void checkEvent(const struct timeval curTimeval)
    int datalen = strlen(data);
    int sum;
    int* pFd = NULL;
-   commGetAliveLinks("Udp-1", &sum, &pFd);
+   commGetAliveLinks("Udp-2", &sum, &pFd);
    if(*pFd > 0) {
       commSend(*pFd, data, &datalen, NULL);
       DEBUGINFO("send <%d> bytes~", datalen);
