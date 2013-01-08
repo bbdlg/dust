@@ -125,7 +125,7 @@ extern int commInit(const char* configFilePath);
  * interface of recv data
  * recvBuf and recvLen are all Value-result parameter.
  * */
-extern int commRecv(int *fd, char* recvBuf, int* recvLen, struct sockaddr* from);
+extern int commRecv(int *fd, char* recvBuf, int* recvLen, void* from);
 
 /*
  * interface of send data
@@ -156,7 +156,7 @@ extern int commConnect(const char* logicName);
 extern int commSelect(const char* logicName);
 
 typedef void RegisterFunc(char* recvbuf, int* recvlen);
-typedef void DataProcFunc(const char* logicName, const int fd, const char* recvbuf, const int recvlen);
+typedef void DataProcFunc(const char* logicName, const int fd, const char* recvbuf, const int recvlen, void* from);
 extern int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataProcFunc* dataProcFunc);
 
 /* 
@@ -172,8 +172,9 @@ extern int commProcess(void);
 #define MpLogicName(x)              MbaseMap(x)
 #define MtypeOfMap(x)               (MpLogicName(x) + sizeof(char*))
 #define MpMapLinkInfo(x)            (MtypeOfMap(x) + sizeof(int))
-#define MsockaddrFrom(x)            (MpMapLinkInfo(x) + sizeof(int*))
-#define MsumOfFd(x)                 (MsockaddrFrom(x) + sizeof(struct sockaddr))
+//#define MsockaddrFrom(x)            (MpMapLinkInfo(x) + sizeof(int*))
+//#define MsumOfFd(x)                 (MsockaddrFrom(x) + sizeof(struct sockaddr))
+#define MsumOfFd(x)                 (MpMapLinkInfo(x) + sizeof(int*))
 #define MbasePoolOfFd(x)            (MsumOfFd(x) + sizeof(int))
 #define fdInitValue                 -1
 #define MinitPoolOfFd(x)            memset(MbasePoolOfFd(x), fdInitValue, (*(int*)MsumOfFd(x) * sizeof(int)))
@@ -216,6 +217,7 @@ typedef struct {
    int   destPort;
    int   localPort;
    int   state;
+   struct sockaddr sAddr;
 }UdpInfoObject;
 #endif
 

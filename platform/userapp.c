@@ -25,7 +25,7 @@ const char* appCompileDate = __DATE__;
 const char* appCompileTime = __TIME__;
 
 
-void procUdpMsg(const char* logicName, const int fd, const char* recvbuf, const int recvlen)
+void procUdpMsg(const char* logicName, const int fd, const char* recvbuf, const int recvlen, void* from)
 {
    char sendbuf[1024] = {0};
    sprintf(sendbuf, "haha, i recv <%d> bytes from u~", recvlen);
@@ -33,7 +33,7 @@ void procUdpMsg(const char* logicName, const int fd, const char* recvbuf, const 
 
    printf("recv: [%s]\n", recvbuf);
    int len = sizeof(struct sockaddr);
-   commSend(fd, sendbuf, &sendlen, (struct sockaddr*)MsockaddrFrom(commGetLogicNamePos(logicName)));
+   commSend(fd, sendbuf, &sendlen, from);
 }
 
 
@@ -56,7 +56,7 @@ void initAll(void)
 /* 该函数将在主循环中循环被调用 */
 void checkEvent(const struct timeval curTimeval)
 {
-   /*
+   
    char* data = "hallo world!\n";
    char recvdata[1024] = {0};
    int datalen = strlen(data);
@@ -64,11 +64,11 @@ void checkEvent(const struct timeval curTimeval)
    int* pFd = NULL;
    commGetAliveLinks("Udp-1", &sum, &pFd);
    if(*pFd > 0) {
-      commSend(*pFd, data, &datalen);
+      commSend(*pFd, data, &datalen, NULL);
       DEBUGINFO("send <%d> bytes~", datalen);
    }
    sleep(1);
-   */
+   
    return;
 }
 

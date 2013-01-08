@@ -21,12 +21,12 @@
 
 char* homePath = NULL;
 
-void procLpMsg(const char* logicName, const int fd, const char* recvbuf, const int recvlen)
+void procLpMsg(const char* logicName, const int fd, const char* recvbuf, const int recvlen, void* from)
 {
    char sendbuf[1024] = {0};
    int sendlen = 0;
    procLgModule(recvbuf, recvlen, sendbuf, &sendlen);
-   commSend(fd, sendbuf, &sendlen, NULL);
+   commSend(fd, sendbuf, &sendlen, from);
 }
 
 void showVersion(void)
