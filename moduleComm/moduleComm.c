@@ -238,13 +238,22 @@ int connectTcpClient(int baseOfMap)
    serverAddr.sin_family       = AF_INET;
    serverAddr.sin_port         = htons(tcpClientInfoObject->destPort);
    serverAddr.sin_addr.s_addr  = inet_addr(tcpClientInfoObject->destIp);
-   bzero(&(serverAddr.sin_zero), 8);
+   bzero(serverAddr.sin_zero, sizeof(serverAddr.sin_zero));
 
-   setSocketNonBlock(sockfd);
+   //setSocketNonBlock(sockfd);
 
+   /* if socket is block, connect() maybe return EINPROGRESS, it means "Operation now in progress". */
    if (-1 == connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr))) {
+      DEBUGINFO();
+      perror("connect error");
       return COMM_CONNECT_FAILED;
    }
+
+#ifdef LOG
+   log(LOG_INFO, "<TcpClientInfo> logicName<%s> destIp<%s> destPort<%d> fd<%d>", *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd);
+#else
+   DEBUGINFO("<TcpClientInfo> logicName<%s> destIp<%s> destPort<%d> fd<%d>", *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd);
+#endif
 
    *((int*)MbasePoolOfFd(baseOfMap)) = sockfd;
    (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
@@ -255,6 +264,16 @@ int connectTcpClient(int baseOfMap)
       (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->registerFunc(gRecvBuf, &sendlen); //borrow gRecvBuf
       commSend(sockfd, gRecvBuf, &sendlen, NULL);
    }
+
+   //debug
+   int sendlen = 10;
+   int ret = send(sockfd, "hallo server", 20, 0);
+   if(ret <= 0) {
+      perror("send error");
+   }
+   perror("send ok");
+
+
 
    return COMM_SUCCESS;
 }
@@ -361,9 +380,9 @@ int connectTcpServer(int baseOfMap)
    *((int*)MbasePoolOfFd(baseOfMap) + 0) = sockfd;
    (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
 #ifdef LOG
-   log(LOG_INFO, "listen port: %d, fd: %d, logicName: %s", (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, sockfd, *(char**)MpLogicName(baseOfMap));
+   log(LOG_INFO, "<TcpServerInfo> logicName<%s> localPort<%d> fd<%d>", *(char**)MpLogicName(baseOfMap), (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, sockfd);
 #else
-   DEBUG("listen sockfd: <%d>", sockfd);
+   DEBUGINFO("<TcpServerInfo> logicName<%s> localPort<%d> fd<%d>", *(char**)MpLogicName(baseOfMap), (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, sockfd);
 #endif
 
 accept:
@@ -594,11 +613,14 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
       //warning
    }
 
+   //DEBUGINFO("fd:%d, pbuf:%p, len:%d, from:%p", *fd, recvBuf, *recvLen, from);
+
    errno = 0;
    if(NULL == from) {
       *recvLen = recv(*fd, recvBuf, *recvLen, MSG_DONTWAIT);
    }
    else {
+      DEBUGINFO("from is not null");
 #ifdef UDP_MODE
       int len = sizeof(struct sockaddr);
       *recvLen = recvfrom(*fd, recvBuf, *recvLen, MSG_DONTWAIT, (struct sockaddr*)from, &len);
@@ -606,6 +628,7 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
    }
 
    DEBUGINFO("fd<%d> recv() return <%d>, errno:<%d>, EINTR:<%d>", *fd, *recvLen, errno, EINTR);
+   perror("why return -1?");
 
    if(0 == *recvLen) {
       if(errno != EINTR) {
@@ -758,7 +781,7 @@ int commConnect(const char* logicName)
          ret = connectFunc[*(int*)MtypeOfMap(_curMapStart)](_curMapStart);
          if(ret) {
 #ifdef LOG
-            log(LOG_ERROR, "connect logicName<%s> failed! reason: %s", *(char**)MpLogicName(_curMapStart), moduleErrInfo(log, ret));
+            log(LOG_ERROR, "connect logicName<%s> failed! reason: %s", *(char**)MpLogicName(_curMapStart), moduleErrInfo(comm, ret));
 #endif
             return ret;
          }
@@ -845,7 +868,7 @@ int commProcess(void)
 {
    int ret = 0;
    while((ret = commSelect(NULL))) {
-      //DEBUGINFO("select return %d", ret);
+      DEBUGINFO("select return %d", ret);
       //recv all fd
       int _sumOfMap = *(int*)gLinkMap;
       int _curMapStart = sizeof(int);
