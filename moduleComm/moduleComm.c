@@ -18,6 +18,7 @@
  * */
 
 #include "moduleComm.h"
+#include <execinfo.h>
 
 const char* commVersion = "1.0.0";
 const char* commCompileDate = __DATE__;
@@ -31,6 +32,7 @@ const char* defaultConfigFilePath = "./moduleComm.conf";
 
 const char* commErrInfo[commMAXERRNO] = {
    "success",
+   "invalid fd",
    "invalid logic name",
    "invalid map type",
    "invalid port",
@@ -158,6 +160,7 @@ int initTcpClientInfo(const char* configFilePath)
    while(sumTcpClient--) {
       char* logicName = NULL;
       TcpClientInfoObject* tcpClientInfoObject = (TcpClientInfoObject*)malloc(sizeof(TcpClientInfoObject));
+      memset(tcpClientInfoObject, 0, sizeof(TcpClientInfoObject));
 
       //read value from config file
       sizeRes = MAX_LEN_VALUE;
@@ -235,26 +238,33 @@ int connectTcpClient(int baseOfMap)
       return COMM_CREATE_FD_ERROR;
    }
    struct sockaddr_in serverAddr;
+   bzero(&serverAddr, sizeof(struct sockaddr_in));
    serverAddr.sin_family       = AF_INET;
    serverAddr.sin_port         = htons(tcpClientInfoObject->destPort);
    serverAddr.sin_addr.s_addr  = inet_addr(tcpClientInfoObject->destIp);
-   bzero(serverAddr.sin_zero, sizeof(serverAddr.sin_zero));
+   //bzero(serverAddr.sin_zero, sizeof(serverAddr.sin_zero));
 
-   //setSocketNonBlock(sockfd);
+   setSocketNonBlock(sockfd);
 
    /* if socket is block, connect() maybe return EINPROGRESS, it means "Operation now in progress". */
-   if (-1 == connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr))) {
-      DEBUGINFO();
-      perror("connect error");
-      return COMM_CONNECT_FAILED;
-   }
-
+   errno = 0;
+   int ret = connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr));
 #ifdef LOG
-   log(LOG_INFO, "<TcpClientInfo> logicName<%s> destIp<%s> destPort<%d> fd<%d>", *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd);
+   log(LOG_WARNING, "<TcpClientInfo> logicName<%s> dest<%s:%d> fd<%d>, connect<%s>", *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd, strerror(errno));
 #else
-   DEBUGINFO("<TcpClientInfo> logicName<%s> destIp<%s> destPort<%d> fd<%d>", *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd);
+   DEBUGINFO("<TcpClientInfo> logicName<%s> dest<%s:%d> fd<%d>, connect<%s>", *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd, strerror(errno));
 #endif
 
+   if(-1 == ret) {
+      if(errno != EINPROGRESS) {
+         return COMM_CONNECT_FAILED;
+      }
+      else if(COMM_SUCCESS != commWaitFdReady(sockfd, timeOutOfSelect)) {
+         return COMM_CONNECT_FAILED;
+      }
+   }
+
+   //update the state and gLinkMap
    *((int*)MbasePoolOfFd(baseOfMap)) = sockfd;
    (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
 
@@ -265,18 +275,63 @@ int connectTcpClient(int baseOfMap)
       commSend(sockfd, gRecvBuf, &sendlen, NULL);
    }
 
-   //debug
-   int sendlen = 10;
-   int ret = send(sockfd, "hallo server", 20, 0);
-   if(ret <= 0) {
-      perror("send error");
+   return COMM_SUCCESS;
+}
+
+/*
+ * RECONNECT RULES
+ * time++   times
+ *      5    0~2
+ *     60    3~9
+ *    600    10+
+ */
+int reconnectTcpClient(struct timeval curTimeval)
+{
+   int _sumOfMap = *(int*)gLinkMap;
+   int _curMapStart = sizeof(int);
+   while(_sumOfMap--) {
+      if(TCPCLIENT != *(int*)MtypeOfMap(_curMapStart)) {
+         continue;
+      }
+      if(NULL == (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->dataProcFunc) {
+         continue;
+      }
+      if((CONNECTED == (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state)
+            && (fdInitValue != *(int*)MbasePoolOfFd(_curMapStart))) {
+         continue;
+      }
+      
+      int* ptv    = &((*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->timeNextReconnect);
+      int* ptimes = &((*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->timesReconnect);
+
+      if(curTimeval.tv_sec < *ptv) {
+         continue;
+      }
+      if(COMM_SUCCESS == connectTcpClient(_curMapStart)) {
+         *ptv = 0;
+         *ptimes = 0;
+      }
+      else{
+         if(*ptimes < 0) {
+            *ptimes = 0;
+         }
+         if(*ptimes < 3) {
+            *ptv = curTimeval.tv_sec + 5;
+         }
+         else if((*ptimes >= 3) && (*ptimes < 10)) {
+            *ptv = curTimeval.tv_sec + 60;
+         }
+         else {
+            *ptv = curTimeval.tv_sec + 600;
+         }
+         (*ptimes)++;
+      }
+      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
    }
-   perror("send ok");
-
-
 
    return COMM_SUCCESS;
 }
+
 #endif
 
 #ifdef TCP_SERVER_MODE
@@ -573,6 +628,55 @@ int connectUdp(int baseOfMap)
 }
 #endif
 
+int commWaitFdReady(const int fd, const struct timeval *timeout)
+{
+   fd_set wfd;
+   struct timeval to;
+   struct timeval *toptr = NULL;
+
+   if(0 > fd) {
+      return COMM_INVALID_FD;
+   }
+   if(timeout) {
+      to = *timeout;
+      toptr = &to;
+   }
+
+   FD_ZERO(&wfd);
+   FD_SET(fd, &wfd);
+   if(-1 == select(fd+1, NULL, &wfd, NULL, toptr)) {
+      goto failed;
+   }
+   if(!FD_ISSET(fd, &wfd)) {
+      errno = ETIMEDOUT;
+      close(fd);
+      goto failed;
+   }
+
+   int err = 0;
+   int errlen = sizeof(err);
+   if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &errlen) == -1) {
+      close(fd);
+      goto failed;
+   }
+
+   if (err) {
+      errno = err;
+      close(fd);
+      goto failed;
+   }
+   
+   return COMM_SUCCESS;
+
+failed:
+#ifdef LOG
+   log(LOG_WARNING, "wait fd ready failed: <%s>", strerror(errno));
+#else
+   DEBUGINFO("wait fd ready failed: <%s>", strerror(errno));
+#endif
+   return COMM_CONNECT_FAILED;
+}
+
 int commInit(const char* configFilePath)
 {
    int ret;
@@ -620,33 +724,29 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
       *recvLen = recv(*fd, recvBuf, *recvLen, MSG_DONTWAIT);
    }
    else {
-      DEBUGINFO("from is not null");
 #ifdef UDP_MODE
       int len = sizeof(struct sockaddr);
       *recvLen = recvfrom(*fd, recvBuf, *recvLen, MSG_DONTWAIT, (struct sockaddr*)from, &len);
 #endif
    }
 
-   DEBUGINFO("fd<%d> recv() return <%d>, errno:<%d>, EINTR:<%d>", *fd, *recvLen, errno, EINTR);
-   perror("why return -1?");
-
-   if(0 == *recvLen) {
-      if(errno != EINTR) {
-         //now errno should be 0.
+   if(0 < *recvLen) {
 #ifdef LOG
-         log(LOG_WARNING, "fd<%d> disconnect, now close it!", *fd);
+      log(LOG_INFO, "recv %d bytes via fd<%d>", *recvLen, *fd);
 #endif
-         close(*fd);
-         *fd = fdInitValue;
+   }
+   else if(0 == *recvLen) {
+      if(errno != EINTR) {
          return COMM_DISCONNECTED;
       }
    }
-
-#ifdef LOG
-   if(*recvLen > 0) {
-      log(LOG_INFO, "recv %d bytes via fd<%d>", *recvLen, *fd);
+   else { //(0 > *recvLen)
+      if(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+      }
+      else{
+         return COMM_DISCONNECTED;
+      }
    }
-#endif
 
    //trace
    if(gCommFlag.tcpClientTrace || gCommFlag.tcpServerTrace || gCommFlag.udpClientTrace || gCommFlag.udpServerTrace) {
@@ -781,7 +881,7 @@ int commConnect(const char* logicName)
          ret = connectFunc[*(int*)MtypeOfMap(_curMapStart)](_curMapStart);
          if(ret) {
 #ifdef LOG
-            log(LOG_ERROR, "connect logicName<%s> failed! reason: %s", *(char**)MpLogicName(_curMapStart), moduleErrInfo(comm, ret));
+            log(LOG_ERROR, "connect logicName<%s> failed! reason<%s>", *(char**)MpLogicName(_curMapStart), moduleErrInfo(comm, ret));
 #endif
             return ret;
          }
@@ -809,7 +909,7 @@ int commSelect(const char* logicName)
       for(i=0; i<*(int*)MsumOfFd(_curMapStart); i++) {
          _fd = *((int*)MbasePoolOfFd(_curMapStart) + i);
          if(fdInitValue != _fd) {
-            //DEBUGINFO("LISTEN: <%d>", _fd);
+            //DEBUGINFO("select: <%d>", _fd);
             FD_SET(_fd, &fdSet);
             _maxSockFd = _maxSockFd>_fd ? _maxSockFd : _fd;
          }
@@ -831,9 +931,7 @@ int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataProcFunc*
          cur += 4*(4 + *(int*)MsumOfFd(cur));
          continue;
       }
-#ifdef LOG
-      log(LOG_INFO, "register process function of logicName<%s>", logicName);
-#endif
+
       if(0) {
          printf("you are never get here~~");
       }
@@ -841,12 +939,22 @@ int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataProcFunc*
       else if(TCPSERVER == *(int*)MtypeOfMap(cur)) {
          (*(TcpServerInfoObject**)MpMapLinkInfo(cur))->registerFunc = registerFunc;
          (*(TcpServerInfoObject**)MpMapLinkInfo(cur))->dataProcFunc = dataProcFunc;
+#ifdef LOG
+         log(LOG_INFO, "register function of logicName<%s>, type<TCP_SERVER>, addr<%p><%p>", logicName, registerFunc, dataProcFunc);
+#else
+         DEBUGINFO("register function of logicName<%s>, type<TCP_SERVER>, addr<%p><%p>", logicName, registerFunc, dataProcFunc);
+#endif
       }
 #endif
 #ifdef TCP_CLIENT_MODE
-      else if(TCPSERVER == *(int*)MtypeOfMap(cur)) {
+      else if(TCPCLIENT == *(int*)MtypeOfMap(cur)) {
          (*(TcpClientInfoObject**)MpMapLinkInfo(cur))->registerFunc = registerFunc;
          (*(TcpClientInfoObject**)MpMapLinkInfo(cur))->dataProcFunc = dataProcFunc;
+#ifdef LOG
+         log(LOG_INFO, "register function of logicName<%s>, type<TCP_CLIENT>, addr<%p><%p>", logicName, registerFunc, dataProcFunc);
+#else
+         DEBUGINFO("register function of logicName<%s>, type<TCP_CLIENT>, addr<%p><%p>", logicName, registerFunc, dataProcFunc);
+#endif
       }
 #endif
 #ifdef UDP_MODE
@@ -856,6 +964,11 @@ int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataProcFunc*
             || (UDP_MULTICAST_CLIENT == *(int*)MtypeOfMap(cur))) { 
          (*(UdpInfoObject**)MpMapLinkInfo(cur))->registerFunc = registerFunc;
          (*(UdpInfoObject**)MpMapLinkInfo(cur))->dataProcFunc = dataProcFunc;
+#ifdef LOG
+         log(LOG_INFO, "register function of logicName<%s>, type<UDP>, addr<%p><%p>", logicName, registerFunc, dataProcFunc);
+#else
+         DEBUGINFO("register function of logicName<%s>, type<UDP>, addr<%p><%p>", logicName, registerFunc, dataProcFunc);
+#endif
       }
 #endif
       return COMM_SUCCESS;
@@ -864,11 +977,11 @@ int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataProcFunc*
    return COMM_INVALID_LOGICNAME;
 }
 
-int commProcess(void)
+int commProcess(struct timeval curTimeval)
 {
    int ret = 0;
    while((ret = commSelect(NULL))) {
-      DEBUGINFO("select return %d", ret);
+      //DEBUGINFO("select return %d", ret);
       //recv all fd
       int _sumOfMap = *(int*)gLinkMap;
       int _curMapStart = sizeof(int);
@@ -880,12 +993,15 @@ int commProcess(void)
             }
             int recvlen = MAX_LEN_BUF;
             memset(gRecvBuf, 0, recvlen);
-            
+
 #ifdef TCP_SERVER_MODE
             if((TCPSERVER == *(int*)MtypeOfMap(_curMapStart)) 
                   && ((*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->dataProcFunc)) 
             {
-               commRecv(((int*)MbasePoolOfFd(_curMapStart)+i), gRecvBuf, &recvlen, NULL);
+               if(COMM_DISCONNECTED == commRecv(((int*)MbasePoolOfFd(_curMapStart)+i), gRecvBuf, &recvlen, NULL)) {
+                  close(*(int*)MbasePoolOfFd(_curMapStart+i));
+                  *(int*)MbasePoolOfFd(_curMapStart+i) = fdInitValue;
+               }
                if(recvlen <= 0) {
                   continue;
                }
@@ -896,7 +1012,11 @@ int commProcess(void)
             if((TCPCLIENT == *(int*)MtypeOfMap(_curMapStart)) 
                   && ((*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->dataProcFunc)) 
             {
-               commRecv(((int*)MbasePoolOfFd(_curMapStart)+i), gRecvBuf, &recvlen, NULL);
+               if(COMM_DISCONNECTED == commRecv(((int*)MbasePoolOfFd(_curMapStart)+i), gRecvBuf, &recvlen, NULL)) {
+                  close(*(int*)MbasePoolOfFd(_curMapStart+i));
+                  *(int*)MbasePoolOfFd(_curMapStart+i) = fdInitValue;
+                  (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state = DISCONNECTED;
+               }
                if(recvlen <= 0) {
                   continue;
                }
@@ -923,8 +1043,11 @@ int commProcess(void)
       
       //try to accept
       commConnect(NULL);
-
    }
+
+#ifdef TCP_CLIENT_MODE
+   reconnectTcpClient(curTimeval);
+#endif
 
    return COMM_SUCCESS;
 }

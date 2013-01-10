@@ -36,6 +36,12 @@ void procUdpMsg(const char* logicName, const int fd, const char* recvbuf, const 
    commSend(fd, sendbuf, &sendlen, from);
 }
 
+void sendMsgToClient(char* sendbuf, int* sendlen)
+{
+   memcpy(sendbuf, "1233211234567", 13);
+   *sendlen = 13;
+}
+
 
 /*
  * 初始化函数
@@ -50,6 +56,7 @@ void procUdpMsg(const char* logicName, const int fd, const char* recvbuf, const 
 void initAll(void)
 {
    int ret = commSetFunc("Udp-1", NULL, &procUdpMsg);
+   ret = commSetFunc("tcpClient1", &sendMsgToClient, &procUdpMsg);
    return;
 }
 

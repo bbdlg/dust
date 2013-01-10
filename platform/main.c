@@ -98,7 +98,7 @@ int main(int argc, char** argv)
    ret = commConnect(NULL);
    if(ret) {
       log(LOG_ERROR, "commConnect %s", moduleErrInfo(comm, ret));
-      exit(1);
+      //exit(1);
    }
 
    //init lgModule
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
    ret = commSetFunc("dustLgModule", (RegisterFunc*)&welcomeLp, &procLpMsg);
    if(ret) {
       log(LOG_ERROR, "it seems that logicName<dustLgModule> is not set");
-      exit(1);
+      //exit(1);
    }
  
    //init every function
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
    while(1) {
       gettimeofday(&curTimeval, NULL);
       checkEvent(curTimeval);
-      commProcess();
+      commProcess(curTimeval);
    }
 
    return 0;

@@ -58,6 +58,7 @@ extern const char* commCompileTime;
  * */
 enum commErrNo {
    COMM_SUCCESS = 0,
+   COMM_INVALID_FD,
    COMM_INVALID_LOGICNAME,
    COMM_INVALID_MAPTYPE,
    COMM_INVALID_PORT,
@@ -171,7 +172,7 @@ extern int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataPr
  * before call this function, you must call commInit() and commConnect(NULL);
  * you call this function periodically.
  * */
-extern int commProcess(void);
+extern int commProcess(struct timeval curTimeval);
 
 #define MAX_LEN_VALUE   100
 #define MAX_LEN_BUF     4096
@@ -217,6 +218,8 @@ typedef struct {
    int   destPort;
    int   localPort;
    int   state;
+   int   timesReconnect;
+   int   timeNextReconnect;
    RecordObj recordObj;
 }TcpClientInfoObject;
 #endif
