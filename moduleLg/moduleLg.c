@@ -221,6 +221,7 @@ int addDefaultCmdFunction(void)
    addCmdFunction(&lgCmdFuncWelcome,   "welcome");
    addCmdFunction(&lgCmdFuncAbout,     "about");
    addCmdFunction(&lgCmdFuncVersion,   "version");
+   addCmdFunction(&lgCmdFuncTrace,     "trace");
 
    return LG_SUCCESS;
 }

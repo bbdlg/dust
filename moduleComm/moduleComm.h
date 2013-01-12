@@ -41,6 +41,7 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include "moduleTools.h"
+#include "moduleLg.h"
 #ifdef LOG
    #include "moduleLog.h"
    #include "moduleErr.h"
@@ -69,6 +70,7 @@ enum commErrNo {
    COMM_SET_SOCKET_FAILED,
    COMM_UNKNOWN_UDP_MODE,
    COMM_DISCONNECTED,
+   COMM_TRY_AGAIN,
    commMAXERRNO
 };
 extern const char* commErrInfo[commMAXERRNO];
@@ -173,6 +175,9 @@ extern int commSetFunc(const char* logicName, RegisterFunc* registerFunc, DataPr
  * you call this function periodically.
  * */
 extern int commProcess(struct timeval curTimeval);
+
+/* function for lg module, pre-cmd is "trace" */
+extern void lgCmdFuncTrace(int argc, char* argv[]);
 
 #define MAX_LEN_VALUE   100
 #define MAX_LEN_BUF     4096

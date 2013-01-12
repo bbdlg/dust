@@ -43,6 +43,7 @@ const char* commErrInfo[commMAXERRNO] = {
    "set socket option failed",
    "unknown udp mode",
    "connection has disconnected",
+   "please try again",
 };
 
 int setSocketNonBlock(int nSocketFd)
@@ -742,6 +743,7 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
    }
    else { //(0 > *recvLen)
       if(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+         return COMM_TRY_AGAIN;
       }
       else{
          return COMM_DISCONNECTED;
@@ -759,6 +761,7 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
                (*(TcpClientInfoObject**)MpMapLinkInfo(pos))->recordObj.recvByte += *recvLen;
             }
             if(ON == gCommFlag.tcpClientPrint) {
+               DEBUGINFO("recv len is %d", *recvLen);
                hexdump(recvBuf, *recvLen, "get msg :");
             }
             break;
@@ -883,7 +886,6 @@ int commConnect(const char* logicName)
 #ifdef LOG
             log(LOG_ERROR, "connect logicName<%s> failed! reason<%s>", *(char**)MpLogicName(_curMapStart), moduleErrInfo(comm, ret));
 #endif
-            return ret;
          }
       }
       _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
@@ -998,9 +1000,13 @@ int commProcess(struct timeval curTimeval)
             if((TCPSERVER == *(int*)MtypeOfMap(_curMapStart)) 
                   && ((*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->dataProcFunc)) 
             {
+               if(0 == i) { //first fd is listen fd of tcp server.
+                  continue;
+               }
                if(COMM_DISCONNECTED == commRecv(((int*)MbasePoolOfFd(_curMapStart)+i), gRecvBuf, &recvlen, NULL)) {
-                  close(*(int*)MbasePoolOfFd(_curMapStart+i));
-                  *(int*)MbasePoolOfFd(_curMapStart+i) = fdInitValue;
+                  DEBUGINFO("close server fd<%d>", *((int*)MbasePoolOfFd(_curMapStart) + i));
+                  close(*((int*)MbasePoolOfFd(_curMapStart) + i));
+                  *((int*)MbasePoolOfFd(_curMapStart) + i) = fdInitValue;
                }
                if(recvlen <= 0) {
                   continue;
@@ -1013,8 +1019,8 @@ int commProcess(struct timeval curTimeval)
                   && ((*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->dataProcFunc)) 
             {
                if(COMM_DISCONNECTED == commRecv(((int*)MbasePoolOfFd(_curMapStart)+i), gRecvBuf, &recvlen, NULL)) {
-                  close(*(int*)MbasePoolOfFd(_curMapStart+i));
-                  *(int*)MbasePoolOfFd(_curMapStart+i) = fdInitValue;
+                  close(*((int*)MbasePoolOfFd(_curMapStart) + i));
+                  *((int*)MbasePoolOfFd(_curMapStart) + i) = fdInitValue;
                   (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state = DISCONNECTED;
                }
                if(recvlen <= 0) {
@@ -1052,3 +1058,48 @@ int commProcess(struct timeval curTimeval)
    return COMM_SUCCESS;
 }
 
+void lgCmdFuncTrace(int argc, char* argv[])
+{
+   if(1 == argc) {
+      term("Usage: trace [all|tcp|udp] [logicName]\n");
+      return;
+   }
+
+   char flag = -1;
+   if(0 == strcmp(argv[1], "all"))        flag = 1;
+   if(0 == strcmp(argv[1], "tcp"))        flag = 2;
+   if(0 == strcmp(argv[1], "udp"))        flag = 3;
+   const char* logicName = argv[2];
+   int has_record= 0;
+   int _sumOfMap = *(int*)gLinkMap;
+   int _curMapStart = sizeof(int);
+   while(_sumOfMap--) {
+      int type = *(int*)MtypeOfMap(_curMapStart);
+      if(0) {}
+#ifdef TCP_CLIENT_MODE
+      else if(TCPCLIENT == type) {
+         if(1 == flag) {
+            RecordObj obj = (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
+         }
+         else {
+            if(logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+               RecordObj obj = (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+               term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                     *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+               has_record = 1;
+            }
+         }
+      }
+#endif
+      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+   }
+
+   if(0 == has_record) {
+      term("Try 'trace all'");
+   }
+
+   return;
+}

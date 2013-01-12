@@ -217,7 +217,7 @@ void hexdump(const void* _data, size_t size, const char* info)
    int i=0;
    const char* data = (const char*)_data;
    while (offset < size) {
-      printf("0xx  ", offset);
+      printf("%06x  ", offset);
       size_t n = size - offset;
       if (n > 16) {
          n = 16;
