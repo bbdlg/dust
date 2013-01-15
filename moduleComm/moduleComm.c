@@ -798,7 +798,7 @@ int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd)
    int _sumOfMap = *(int*)gLinkMap;
    int _curMapStart = sizeof(int);
    while(_sumOfMap--) {
-      if(0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName)) {
+      if((CONNECTED == *(int*)MtypeOfMap(_curMapStart)) && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
          *sumFd = *(int*)MsumOfFd(_curMapStart);
          *pFd = (int*)MbasePoolOfFd(_curMapStart);
 #ifdef TCP_SERVER_MODE
@@ -911,6 +911,12 @@ int commSelect(const char* logicName)
       for(i=0; i<*(int*)MsumOfFd(_curMapStart); i++) {
          _fd = *((int*)MbasePoolOfFd(_curMapStart) + i);
          if(fdInitValue != _fd) {
+#ifdef TCP_CLIENT_MODE
+            if((TCPCLIENT == *(int*)MtypeOfMap(_curMapStart)) 
+                  && (CONNECTED != (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state)) {
+               continue;
+            }
+#endif
             //DEBUGINFO("select: <%d>", _fd);
             FD_SET(_fd, &fdSet);
             _maxSockFd = _maxSockFd>_fd ? _maxSockFd : _fd;
@@ -983,7 +989,7 @@ int commProcess(struct timeval curTimeval)
 {
    int ret = 0;
    while((ret = commSelect(NULL))) {
-      //DEBUGINFO("select return %d", ret);
+      DEBUGINFO("select return %d", ret);
       //recv all fd
       int _sumOfMap = *(int*)gLinkMap;
       int _curMapStart = sizeof(int);
