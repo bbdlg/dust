@@ -30,6 +30,24 @@ char gRecvBuf[MAX_LEN_BUF];
 struct timeval timeOutOfSelect = {0, 100000}; //default timeout: 100ms
 const char* defaultConfigFilePath = "./moduleComm.conf";
 
+char* strSortOfCommunication[] = { //see enum SortOfCommunication
+#ifdef TCP_CLIENT_MODE
+   "TCPCLIENT",
+#endif
+#ifdef TCP_SERVER_MODE
+   "TCPSERVER",
+#endif
+#ifdef UDP_MODE
+   "UDPSERVER",
+   "UDPCLIENT",
+   "UDP_MULTICAST_SERVER",
+   "UDP_MULTICAST_CLIENT",
+#endif
+   //SERIAL,
+   //CAN,
+   "UNKNOWN_TYPE"
+};
+
 const char* commErrInfo[commMAXERRNO] = {
    "success",
    "invalid fd",
@@ -251,9 +269,9 @@ int connectTcpClient(int baseOfMap)
    errno = 0;
    int ret = connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr));
 #ifdef LOG
-   log(LOG_WARNING, "<TcpClientInfo> logicName<%s> dest<%s:%d> fd<%d>, connect<%s>", *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd, strerror(errno));
+   log(LOG_WARNING, "<%s> logicName<%s> dest<%s:%d> fd<%d>, connect<%s>", strSortOfCommunication[*(int*)MtypeOfMap(baseOfMap)], *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd, strerror(errno));
 #else
-   DEBUGINFO("<TcpClientInfo> logicName<%s> dest<%s:%d> fd<%d>, connect<%s>", *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd, strerror(errno));
+   DEBUGINFO("<%s> logicName<%s> dest<%s:%d> fd<%d>, connect<%s>", strSortOfCommunication[*(int*)MtypeOfMap(baseOfMap)], *(char**)MpLogicName(baseOfMap), (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(TcpClientInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, sockfd, strerror(errno));
 #endif
 
    if(-1 == ret) {
@@ -345,6 +363,7 @@ int initTcpServerInfo(const char* configFilePath)
       char* logicName = NULL;
       int maxLink = -1;
       TcpServerInfoObject* tcpServerInfoObject = (TcpServerInfoObject*)malloc(sizeof(TcpServerInfoObject));
+      memset(tcpServerInfoObject, 0, sizeof(TcpServerInfoObject));
 
       //read value from config file
       sizeRes = MAX_LEN_VALUE;
@@ -436,9 +455,9 @@ int connectTcpServer(int baseOfMap)
    *((int*)MbasePoolOfFd(baseOfMap) + 0) = sockfd;
    (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
 #ifdef LOG
-   log(LOG_INFO, "<TcpServerInfo> logicName<%s> localPort<%d> fd<%d>", *(char**)MpLogicName(baseOfMap), (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, sockfd);
+   log(LOG_WARNING, "<%s> logicName<%s> localPort<%d> fd<%d>", strSortOfCommunication[*(int*)MtypeOfMap(baseOfMap)], *(char**)MpLogicName(baseOfMap), (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, sockfd);
 #else
-   DEBUGINFO("<TcpServerInfo> logicName<%s> localPort<%d> fd<%d>", *(char**)MpLogicName(baseOfMap), (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, sockfd);
+   DEBUGINFO("<%s> logicName<%s> localPort<%d> fd<%d>", strSortOfCommunication[*(int*)MtypeOfMap(baseOfMap)], *(char**)MpLogicName(baseOfMap), (*(TcpServerInfoObject**)MpMapLinkInfo(baseOfMap))->serverPort, sockfd);
 #endif
 
 accept:
@@ -622,7 +641,9 @@ int connectUdp(int baseOfMap)
    *((int*)MbasePoolOfFd(baseOfMap)) = sockfd;
    (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->state = CONNECTED;
 #ifdef LOG
-   log(LOG_INFO, "udp fd: %d, logicName: %s", sockfd, *(char**)MpLogicName(baseOfMap));
+   log(LOG_WARNING, "<%s> logicName<%s> destIp<%s> destPort<%d> localPort<%d> fd: %d", strSortOfCommunication[*(int*)MtypeOfMap(baseOfMap)], *(char**)MpLogicName(baseOfMap), (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->localPort, sockfd);
+#else
+   DEBUGINFO("<%s> logicName<%s> destIp<%s> destPort<%d> localPort<%d> fd: %d", strSortOfCommunication[*(int*)MtypeOfMap(baseOfMap)], *(char**)MpLogicName(baseOfMap), (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->destIp, (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->destPort, (*(UdpInfoObject**)MpMapLinkInfo(baseOfMap))->localPort, sockfd);
 #endif
 
    return COMM_SUCCESS;
@@ -766,6 +787,18 @@ int commRecv(int* fd, char* recvBuf, int* recvLen, void* from)
             }
             break;
 #endif
+#ifdef TCP_SERVER_MODE
+         case TCPSERVER:
+            if(ON == gCommFlag.tcpServerTrace) {
+               (*(TcpServerInfoObject**)MpMapLinkInfo(pos))->recordObj.recvPacket++;
+               (*(TcpServerInfoObject**)MpMapLinkInfo(pos))->recordObj.recvByte += *recvLen;
+            }
+            if(ON == gCommFlag.tcpServerPrint) {
+               DEBUGINFO("recv len is %d", *recvLen);
+               hexdump(recvBuf, *recvLen, "get msg :");
+            }
+            break;
+#endif
       }
 
    }
@@ -790,6 +823,38 @@ int commSend(int fd, const char* sendBuf, int* sendLen, void* to)
    log(LOG_INFO, "send %d bytes via fd<%d>", *sendLen, fd);
 #endif
 
+   //trace
+   if(gCommFlag.tcpClientTrace || gCommFlag.tcpServerTrace || gCommFlag.udpClientTrace || gCommFlag.udpServerTrace) {
+      int pos = commGetMposByFd(fd);
+      switch(*(int*)MtypeOfMap(pos)) {
+#ifdef TCP_CLIENT_MODE
+         case TCPCLIENT:
+            if(ON == gCommFlag.tcpClientTrace) {
+               (*(TcpClientInfoObject**)MpMapLinkInfo(pos))->recordObj.sendPacket++;
+               (*(TcpClientInfoObject**)MpMapLinkInfo(pos))->recordObj.sendByte += *sendLen;
+            }
+            if(ON == gCommFlag.tcpClientPrint) {
+               DEBUGINFO("send len is %d", *sendLen);
+               hexdump(sendBuf, *sendLen, "sent msg :");
+            }
+            break;
+#endif
+#ifdef TCP_SERVER_MODE
+         case TCPSERVER:
+            if(ON == gCommFlag.tcpServerTrace) {
+               (*(TcpServerInfoObject**)MpMapLinkInfo(pos))->recordObj.sendPacket++;
+               (*(TcpServerInfoObject**)MpMapLinkInfo(pos))->recordObj.sendByte += *sendLen;
+            }
+            if(ON == gCommFlag.tcpServerPrint) {
+               DEBUGINFO("send len is %d", *sendLen);
+               hexdump(sendBuf, *sendLen, "sent msg :");
+            }
+            break;
+#endif
+      }
+
+   }
+
    return COMM_SUCCESS;
 }
 
@@ -798,7 +863,21 @@ int commGetAliveLinks(const char* logicName, int* sumFd, int** pFd)
    int _sumOfMap = *(int*)gLinkMap;
    int _curMapStart = sizeof(int);
    while(_sumOfMap--) {
-      if((CONNECTED == *(int*)MtypeOfMap(_curMapStart)) && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+      DEBUGINFO("%d, logicName<%s><%s>", *(int*)MtypeOfMap(_curMapStart), *(char**)MpLogicName(_curMapStart), logicName);
+#ifdef TCP_CLIENT_MODE
+      if((TCPCLIENT == *(int*)MtypeOfMap(_curMapStart)) && (CONNECTED == (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->state) && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+#endif
+#ifdef TCP_SERVER_MODE
+      if((TCPSERVER == *(int*)MtypeOfMap(_curMapStart)) && (CONNECTED == (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->state) && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+#endif
+#ifdef UDP_MODE
+      if(((UDPCLIENT == *(int*)MtypeOfMap(_curMapStart)) 
+               || (UDPSERVER == *(int*)MtypeOfMap(_curMapStart)) 
+               || (UDP_MULTICAST_SERVER == *(int*)MtypeOfMap(_curMapStart)) 
+               || (UDP_MULTICAST_CLIENT == *(int*)MtypeOfMap(_curMapStart)))
+          && (CONNECTED == (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->state) 
+          && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+#endif
          *sumFd = *(int*)MsumOfFd(_curMapStart);
          *pFd = (int*)MbasePoolOfFd(_curMapStart);
 #ifdef TCP_SERVER_MODE
@@ -1091,8 +1170,44 @@ void lgCmdFuncTrace(int argc, char* argv[])
             has_record = 1;
          }
          else {
-            if(logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+            if((2 == flag) && logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
                RecordObj obj = (*(TcpClientInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+               term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                     *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+               has_record = 1;
+            }
+         }
+      }
+#endif
+#ifdef TCP_SERVER_MODE
+      else if(TCPSERVER == type) {
+         if(1 == flag) {
+            RecordObj obj = (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
+         }
+         else {
+            if((2 == flag) && logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+               RecordObj obj = (*(TcpServerInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+               term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                     *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+               has_record = 1;
+            }
+         }
+      }
+#endif
+#ifdef UDP_MODE
+      else if((UDPSERVER == type) || (UDPCLIENT == type) || (UDP_MULTICAST_SERVER == type) || (UDP_MULTICAST_CLIENT == type)) {
+         if(1 == flag) {
+            RecordObj obj = (*(UdpInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
+            term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
+                  *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
+            has_record = 1;
+         }
+         else {
+            if((3 == flag) && logicName && (0 == strcmp(*(char**)MpLogicName(_curMapStart), logicName))) {
+               RecordObj obj = (*(UdpInfoObject**)MpMapLinkInfo(_curMapStart))->recordObj;
                term("logicName:<%s>, \tsend:<%d>packets,<%d>bytes, recv:<%d>packets,<%d>bytes\n", 
                      *(char**)MpLogicName(_curMapStart), obj.sendPacket, obj.sendByte, obj.recvPacket, obj.recvByte);
                has_record = 1;
@@ -1109,3 +1224,4 @@ void lgCmdFuncTrace(int argc, char* argv[])
 
    return;
 }
+

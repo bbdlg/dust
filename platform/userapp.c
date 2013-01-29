@@ -55,7 +55,7 @@ void sendMsgToClient(char* sendbuf, int* sendlen)
  */
 void initAll(void)
 {
-   int ret = commSetFunc("Udp-1", NULL, &procUdpMsg);
+   int ret = commSetFunc("Udp-2", NULL, &procUdpMsg);
    ret = commSetFunc("tcpClient1", &sendMsgToClient, &procUdpMsg);
    return;
 }
@@ -63,7 +63,6 @@ void initAll(void)
 /* 该函数将在主循环中循环被调用 */
 void checkEvent(const struct timeval curTimeval)
 {
-   
    char* data = "hallo world!\n";
    char recvdata[1024] = {0};
    int datalen = strlen(data);
@@ -74,7 +73,7 @@ void checkEvent(const struct timeval curTimeval)
       commSend(*pFd, data, &datalen, NULL);
       DEBUGINFO("send <%d> bytes~", datalen);
    }
-   //sleep(1);
+   sleep(1);
    
    return;
 }
