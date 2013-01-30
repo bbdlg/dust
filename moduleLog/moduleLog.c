@@ -51,13 +51,14 @@ const char* logErrInfo[logMAXERRNO] = {
    "success",
    "invalid input parameter",
    "file pointer is null",
+   "file not exists",
 };
 
 int logInit(const char* configFilePath)
 {
    if((NULL == configFilePath) || access(configFilePath, F_OK)) {
-      printf("config file path is <%s>, access return %d\n", configFilePath, access(configFilePath, F_OK));
-      return LOG_INVALID_INPUT_PARA;
+      printf("config file<%s> maybe not exists.\n", configFilePath);
+      return LOG_FILE_NOT_EXISTS;
    }
    logConfFile = configFilePath;
    return LOG_SUCCESS;

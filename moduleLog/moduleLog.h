@@ -64,6 +64,7 @@ enum logErrNo {
    LOG_SUCCESS = 0,
    LOG_INVALID_INPUT_PARA,
    LOG_FP_IS_NULL,
+   LOG_FILE_NOT_EXISTS,
    logMAXERRNO
 }; 
 extern const char* logErrInfo[logMAXERRNO];

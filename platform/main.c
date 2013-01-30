@@ -78,10 +78,10 @@ int main(int argc, char** argv)
 
    //init logModule
    memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
-   sprintf(tmp, "%s/conf/dust.conf", homePath);
+   sprintf(tmp, "%s/conf/dfc.conf", homePath);
    ret = logInit(tmp);
    if(ret) {
-      ERRORTIP("logInit %s", moduleErrInfo(log, ret));
+      ERRORTIP("logInit-%s", moduleErrInfo(log, ret));
    }
    log(LOG_INFO, "App<%s> start running!", moduleVersion(app));
    log(LOG_INFO, "Log file will be in <%s/log/>", getenv("DFCHOME"));
