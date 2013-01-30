@@ -112,7 +112,7 @@ int main(int argc, char** argv)
    
    //init commModule
    memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
-   sprintf(tmp, "%s/conf/dust.conf", homePath);
+   sprintf(tmp, "%s/conf/dfc.conf", homePath);
    ret = commInit(tmp);
    if(ret) {
       log(LOG_ERROR, "commInit %s", moduleErrInfo(comm, ret));
