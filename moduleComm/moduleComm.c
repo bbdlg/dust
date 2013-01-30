@@ -650,6 +650,23 @@ int connectUdp(int baseOfMap)
 }
 #endif
 
+void commFreeAllFds(void)
+{
+   int _sumOfMap = *(int*)gLinkMap;
+   int _curMapStart = sizeof(int);
+   while(_sumOfMap--) {
+      int sumFd = *(int*)MsumOfFd(_curMapStart);
+      int* pFd  = (int*)MbasePoolOfFd(_curMapStart);
+      int i=0;
+      for(i=0; i<sumFd; i++) {
+         if(*(pFd+i) < 0) continue;
+         shutdown(*(pFd+i), 2);
+         DEBUGINFO("close fd<%d>", *(pFd+i));
+      }
+      _curMapStart += 4*(4 + *(int*)MsumOfFd(_curMapStart));
+   }
+}
+
 int commWaitFdReady(const int fd, const struct timeval *timeout)
 {
    fd_set wfd;

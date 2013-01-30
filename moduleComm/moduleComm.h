@@ -121,6 +121,12 @@ enum TypeOfState {
 extern void* gLinkMap;
 
 /*
+ * free all fds in gLinkMap
+ * but can't avoid TIME_WAIT status
+ */
+extern void commFreeAllFds(void);
+
+/*
  * call this function before use other functions in commModule
  * */
 extern int commInit(const char* configFilePath);

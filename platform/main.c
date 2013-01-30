@@ -39,12 +39,35 @@ void showVersion(void)
    printf("\n");
 }
 
+void handlerSigInt(int sig)
+{
+   printf("recv SIGINT <%d>, you may press ctrl+C.\n", sig);
+   commFreeAllFds();
+   sleep(1);
+   exit(1);
+}
+
+void handlerSigSegv(int sig)
+{
+   printf("recv SIGSEGV <%d>, segment fault.\n", sig);
+   commFreeAllFds();
+   sleep(1);
+   exit(1);
+}
+
 int main(int argc, char** argv)
 {
+   //setup signal process handler
+   signal(SIGINT,  handlerSigInt);
+   signal(SIGSEGV, handlerSigSegv);
+
+   //show version
    if(argv[1] && (0 == strcmp(argv[1], "-v"))) {
       showVersion();
       exit(1);
    }
+
+   //check $DFCHOME
    int ret,i;
    char tmp[256] = {0};
    struct timeval curTimeval;
