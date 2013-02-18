@@ -1,5 +1,17 @@
 DFC(Dust, Farm, and Crop)
 =========================
+version:    1.0.1
+Time:       2013-02-17 22:07:32
+Author:     bbdlg
+Email:      shiluo.110@163.com
+
+1. Use 'cmake' to compile DFC instead of 'automake'.
+2. Add tcp/ip and udp/ip functions.
+3. Fix some bugs.
+
+
+DFC(Dust, Farm, and Crop)
+=========================
 version:    1.0.0
 Time:       2012-11-27 16:34:22
 Author:     bbdlg
