@@ -1,0 +1,2 @@
+project(dfc)
+add_subdirectory(src bin)

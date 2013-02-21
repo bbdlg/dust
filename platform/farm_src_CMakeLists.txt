@@ -1,0 +1,31 @@
+message(STATUS "we will generate crop")
+
+# Set compiler 
+set(CMAKE_C_COMPILER gcc)
+
+# Add header files
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# Add static library
+link_libraries(${PROJECT_SOURCE_DIR}/lib/libdfc.a)
+
+# If you want to add a whole source directory, you should use the following order:
+#           aux_source_directory(${PROJECT_SOURCE_DIR}/src SRC_LIST)
+
+# Add a single source file
+set(SRC_LIST ${SRC_LIST} userapp.c)
+
+# ${SRC_LIST} contains source files, which compile 'dfc'
+add_executable(dfc ${SRC_LIST})
+
+
+if(debug_mode)
+   add_definitions(-DDEBUG)
+endif(debug_mode)
+add_definitions(-g)
+add_definitions(-DTCP_SERVER_MODE)
+add_definitions(-DTCP_CLIENT_MODE)
+add_definitions(-DUDP_MODE)
+add_definitions(-DLOG)
+
+

@@ -17,57 +17,57 @@
 ### along with DFC. If not, see <http://www.gnu.org/licenses/>.
 ###
 
+### this script should be in "dust/platform/"
 
-APP="crop"
-VER="1.0.0"
-TARGETDIR=${APP}_${VER}
-TARGET=${TARGETDIR}.tar.gz
-
-echo "Usage:   `basename $0` [appname][version]"
-echo "Example: `basename $0` ${APP} ${VER}"
-echo "         target name will be ${TARGET}"
-echo
+### package develop platform named "farm":)
+CROP="crop"
+VER="debug"
 
 if [ $# != 2 ]; then
-   echo -n "Are u sure to use default appname and version?(y/n):"
-   read RUNAGAIN
-   case $RUNAGAIN in
-      y|Y) 
-         echo "Now use default value, target name will be ${TARGET}"
-         ;;
-      n|N|*) 
-         echo "exit ..."
-         exit
-         ;;
-   esac
+   echo -n "Use default version, "
 else
-   APP=$1
+   echo -n "Use version <$2>, "
+   CROP=$1
    VER=$2
 fi
 
-TARGETDIR=${APP}_${VER}
+TARGETDIR=${CROP}_${VER}
 TARGET=${TARGETDIR}.tar.gz
+echo "target name will be ${TARGET}"
 
-if [[ ! -d ${DFCHOME} ]] || [[ "${DFCHOME}" != `dirname \`pwd\`` ]]; then
-   echo "Failed: DFCHOME may be wrong, now exit ..."
-   echo
-   exit
+if [ -d ${TARGETDIR} ]; then
+   #mv ${TARGETDIR} ${TARGETDIR}_`date +%Y-%m-%d_%H_%M_%S`_bak
+   rm -rf ${TARGETDIR}
 fi
 
-rm -rf ${TARGETDIR}
-mkdir ${TARGETDIR}
+echo "   Creating directory ..."
+mkdir ${TARGETDIR} 
 mkdir ${TARGETDIR}/bin
-mkdir ${TARGETDIR}/conf
+mkdir ${TARGETDIR}/conf 
+#mkdir ${TARGETDIR}/doc 
+#mkdir ${TARGETDIR}/log 
+#mkdir ${TARGETDIR}/data 
 
-cp -rf `ls ${DFCHOME}/bin/ | grep -E -v "^(\`basename $0\`|crop_*|${TARGETDIR})"` ${TARGETDIR}/bin/
-cp -rf ${DFCHOME}/conf/*               ${TARGETDIR}/conf
-cp -rf ${DFCHOME}/bin/crop_README      ${TARGETDIR}/README
-cp -rf ${DFCHOME}/bin/crop_install.sh  ${TARGETDIR}/install.sh
+echo "   Coping doc, *.sh files ..."
+cp ../bin/crop_README            ${TARGETDIR}/README
+cp ../bin/crop_install.sh        ${TARGETDIR}/install.sh
+cp ../bin/*                      ${TARGETDIR}/bin/
+rm -rf ${TARGETDIR}/bin/crop_README
+rm -rf ${TARGETDIR}/bin/crop_install.sh
 
-tar czf ${TARGET} ${TARGETDIR}
-rm -rf ${TARGETDIR}
+echo "   Coping config files ..."
+cp ../conf/dfc.conf              ${TARGETDIR}/conf/
 
-mv ${TARGET} ${DFCHOME}
-echo "Target<${TARGET}> will be found in ${DFCHOME}."
-echo
+### package
+if [ "$1" = "test" ]; then
+   echo -e "\033[7mNote: You can check <${TARGETDIR}> in current directory.\033[0m"
+else
+   echo "   Packing ..."
+   tar czf ${TARGET} ${TARGETDIR}
+   echo "   Remove temp files ..."
+   rm -rf ${TARGETDIR}
+   echo "   Move target ..."
+   mv ${TARGET} ..
+   echo -e "\033[7mNote: Target <${TARGET}> will be found in <`dirname $PWD`>.\033[0m"
+fi
 

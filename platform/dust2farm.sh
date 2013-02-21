@@ -21,12 +21,12 @@
 
 ### package develop platform named "farm":)
 FARM="farm"
-VER="1.0.0"
+VER="debug"
 
 if [ $# != 2 ]; then
-   echo -n "Now use default value, "
-   echo
+   echo -n "Use default version, "
 else
+   echo -n "Use version <$2>, "
    FARM=$1
    VER=$2
 fi
@@ -39,39 +39,50 @@ if [ -d ${TARGETDIR} ]; then
    #mv ${TARGETDIR} ${TARGETDIR}_`date +%Y-%m-%d_%H_%M_%S`_bak
    rm -rf ${TARGETDIR}
 fi
+
+echo "   Creating directory ..."
 mkdir ${TARGETDIR} 
 mkdir ${TARGETDIR}/include/ 
 mkdir ${TARGETDIR}/lib/ 
 mkdir ${TARGETDIR}/bin
 mkdir ${TARGETDIR}/src
 mkdir ${TARGETDIR}/conf 
+mkdir ${TARGETDIR}/build
 #mkdir ${TARGETDIR}/doc 
 #mkdir ${TARGETDIR}/log 
 #mkdir ${TARGETDIR}/data 
 
-cp ../platform/farm_README       ${TARGETDIR}/README
+echo "   Coping *.h, *.c, *.a, *.sh files ..."
+cp ../platform/farm_README             ${TARGETDIR}/README
+cp ../platform/farm_build.sh           ${TARGETDIR}/build/build.sh
+cp ../platform/farm_CMakeLists.txt     ${TARGETDIR}/CMakeLists.txt
+cp ../platform/farm_src_CMakeLists.txt ${TARGETDIR}/src/CMakeLists.txt
 for header in `find ../module* -type f -name "*.h"`
 do
    cp ${header} ${TARGETDIR}/include
 done
-cp ../platform/userapp.h         ${TARGETDIR}/include
-cp ../platform/main.h            ${TARGETDIR}/include
-cp ../moduleLog/seelog.sh        ${TARGETDIR}/bin
-cp ../moduleLg/lp.sh             ${TARGETDIR}/bin
-cp ../platform/farm2crop.sh      ${TARGETDIR}/bin
-cp ../platform/crop_*            ${TARGETDIR}/bin
-cp ../platform/userapp.c         ${TARGETDIR}/src/userapp.c
+cp ../platform/userapp.h         ${TARGETDIR}/include/
+cp ../platform/main.h            ${TARGETDIR}/include/
 cp ../build/libdfc.a             ${TARGETDIR}/lib/
-cp ../platform/farm_dust.conf    ${TARGETDIR}/conf/dust.conf
+cp ../moduleLog/seelog.sh        ${TARGETDIR}/bin/
+cp ../moduleLg/lp.sh             ${TARGETDIR}/bin/
+cp ../platform/farm2crop.sh      ${TARGETDIR}/bin/
+cp ../platform/crop_*            ${TARGETDIR}/bin/
+cp ../platform/userapp.c         ${TARGETDIR}/src/userapp.c
+
+echo "   Coping config files ..."
+cp ../platform/dfc.conf          ${TARGETDIR}/conf/
 
 ### package
 if [ "$1" = "test" ]; then
    echo "You can check <${TARGETDIR}> in current directory."
 else
+   echo "   Packing ..."
    tar czf ${TARGET} ${TARGETDIR}
-   #rm -rf ${TARGETDIR}
-   echo "Target<${TARGET}> will be found in current directory."
+   echo "   Remove temp files ..."
+   rm -rf ${TARGETDIR}
+   echo "   Move target ..."
+   mv ${TARGET} ..
+   echo -e "\033[7mNote: Target <${TARGET}> will be found in <`dirname $PWD`>.\033[0m"
 fi
-
-echo
 
