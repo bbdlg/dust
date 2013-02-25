@@ -1,120 +1,113 @@
-WELCOME TO FARM
-===============
-
-1 Getting Start
-
-1.1 Preparing Environment
-Assume we are in Farm root directory, enter the following command:
-
-   [root@localhost farm_1.0.0]# echo "export DFCHOME=`pwd`" >> ~/.bash_profile
-   [root@localhost farm_1.0.0]# source ~/.bash_profile
-   [root@localhost farm_1.0.0]# echo "export PATH=$PATH:$DFCHOME/bin:." >> ~/.bash_profile
-   [root@localhost farm_1.0.0]# source ~/.bash_profile
-
-   [root@localhost farm_1.0.0]# chmod +x bin/*
-   
-1.2 Adding A Source File
-Assume we write a new source file named userapp.c, we put it into 'src'.
-
-1.3 Adding A Header File
-Assume we write a new header file named userapp.h, we put it into 'include'.
-
-1.4 Compiling New Code
-In src/Makefile.am, We can change the target name, add new source or header file, add new *.a or *.so, add new compiling switch, and so on. See http://zh.wikipedia.org/wiki/Automake.
-Enter "cd $DFCHOME/src && make reset" to compile the project. Enter 'cd $DFCHOME && make help' to get more information.
-We will find the executable file in $DFCHOME/bin.
-
-1.5 Packing 
-Enter "farm2crop.sh crop 1.0.0", we will find crop_1.0.0.tar.gz in $DFCHOME.
-
-
-2 Introduction Of Files And Directory
-
-   [root@localhost farm_1.0.0]# tree
-   .
-   |-- bin                    ### Crop files and useful script
-   |   |-- crop_README        ### Crop README
-   |   |-- crop_install.sh    ### Installer of Crop
-   |   |-- farm2crop.sh       ### Script to pack crop to *.tar.gz
-   |   |-- lp.sh
-   |   `-- seelog.sh
-   |-- conf                   ### Platform or user's config files
-   |   `-- dust.conf
-   |-- include                ### Header files
-   |   |-- commModule.h
-   |   |-- errModule.h
-   |   |-- lgModule.h
-   |   |-- logModule.h
-   |   |-- main.h
-   |   |-- toolsModule.h
-   |   `-- userapp.h          ### Demo header file
-   |-- lib                    ### Static library
-   |   `-- libdust.a
-   `-- src                    ### Source files and Makefiles
-       |-- Makefile.am        ### You can add your new source files in this file
-       |-- configure.in       ### Call by ./makefile, user can ignore it.
-       |-- makefile           ### Try 'make help' to get more information
-       `-- userapp.c          ### Demo source file
-
-
-
-       
-
 欢迎使用Farm开发平台
 ====================
 
 1 开始使用
 
 1.1 准备环境
-假设我们在Farm的根目录下，输入下列命令：
+   将拿到的farm_x.y.z.tar.gz压缩包解压后，得到farm文件夹。tree一下，就可以看到farm开发平台的全部阵容了。
 
-   [root@localhost farm_1.0.0]# echo "export DFCHOME=`pwd`" >> ~/.bash_profile
-   [root@localhost farm_1.0.0]# source ~/.bash_profile
-   [root@localhost farm_1.0.0]# echo "export PATH=$PATH:$DFCHOME/bin:." >> ~/.bash_profile
-   [root@localhost farm_1.0.0]# source ~/.bash_profile
-
-   [root@localhost farm_1.0.0]# chmod +x bin/*
-   
 1.2 增加一个源文件
-假设我们增加了一个名为userapp.c的源文件，并把它放入src文件夹。
+   假设我们增加了一个名为userapp.c的源文件，并把它放入farm/src文件夹。
 
 1.3 增加一个头文件
-假设我们增加了一个名为userapp.h的源文件，并把它放入include文件夹。
+   假设我们增加了一个名为userapp.h的源文件，并把它放入farm/include文件夹。
 
 1.4 编译新增加的代码
-在 src/Makefile.am 中，我们可以更改目标可执行文件的名字，增加新的源文件或头文件，增加新的静态库或动态库，增加新的编译开关等等。参见 http://zh.wikipedia.org/wiki/Automake。
-输入 "cd $DFCHOME/src && make reset" 编译整个工程，输入 "cd $DFCHOME && make help" 获取更多帮助信息。
-我们可以从 $DFCHOME/bin 下找到最新编译生成的可执行文件。
+   在farm/src下的CMakeLists.txt，增加的userapp.c和userapp.h的相应配置。
+   在farm/build下，输入./build.sh即可编译整个工程，在build目录下得到最终可执行程序dfc。
 
 1.5 打包发布
-输入 "farm2crop.sh crop 1.0.0", 我们可以在 $DFCHOME 下找到 crop_1.0.0.tar.gz。
+   在farm/build下，输入./build.sh crop即可将整个工程打包发布，如果想要加一个版本，则需输入如下命令：
+      ./build.sh crop 1.0.0
+   最终的发布介质位于farm根目录下。
 
 
 2 目录介绍
 
    [root@localhost farm_1.0.0]# tree
    .
-   |-- bin                    ### Crop用到的文件及其他有用的脚本
-   |   |-- crop_README        ### Crop的README
-   |   |-- crop_install.sh    ### Crop安装脚本
-   |   |-- farm2crop.sh       ### Crop的打包脚本
+   |-- crop_1.0.0.tar.gz      //crop的发布介质
+   |-- CMakeLists.txt         //cmake的配置文件
+   |-- README
+   |-- bin                    //各类脚本及crop发布所需的的文件
+   |   |-- crop_README
+   |   |-- crop_install.sh
+   |   |-- dfc
+   |   |-- farm2crop.sh
    |   |-- lp.sh
    |   `-- seelog.sh
-   |-- conf                   ### 平台和用户的配置文件
-   |   `-- dust.conf
-   |-- include                ### 头文件
-   |   |-- commModule.h
-   |   |-- errModule.h
-   |   |-- lgModule.h
-   |   |-- logModule.h
+   |-- build                  //编译及发布脚本
+   |   `-- build.sh
+   |-- conf                   //配置文件
+   |   `-- dfc.conf
+   |-- include                //存放头文件
    |   |-- main.h
-   |   |-- toolsModule.h
-   |   `-- userapp.h          ### Demo 头文件
-   |-- lib                    ### 静态库
-   |   `-- libdust.a
-   `-- src                    ### 源文件及Makefile
-       |-- Makefile.am        ### 在本文件内添加新的源文件名称
-       |-- configure.in       ### 由automake调用，用户可忽略它
-       |-- makefile           ### 输入 'make help' 获取更多帮助信息
-       `-- userapp.c          ### Demo 源文件
+   |   |-- memwatch.h
+   |   |-- moduleComm.h
+   |   |-- moduleErr.h
+   |   |-- moduleLg.h
+   |   |-- moduleLog.h
+   |   |-- moduleMem.h
+   |   |-- moduleTools.h
+   |   `-- userapp.h
+   |-- lib                    //存放静态库及动态库
+   |   `-- libdfc.a
+   `-- src                    //存放源文件
+       |-- CMakeLists.txt
+       `-- userapp.c
 
+WELCOME TO FARM
+===============
+
+1 Getting Start
+
+1.1 Preparing Environment
+   Decompress farm_x.y.z.tar.gz to get farm, which are all contents of farm develop platform.
+   
+1.2 Adding A Source File
+Assume we write a new source file named userapp.c, we put it into 'farm/src'.
+
+1.3 Adding A Header File
+Assume we write a new header file named userapp.h, we put it into 'farm/include'.
+
+1.4 Compiling New Code
+   Add corresponding setting in farm/src/CMakeLists.txt.
+   ./farm/build/build.sh, and we will get the final target: dfc.
+
+1.5 Packing 
+   Input './farm/build/build.sh crop 1.0.0' to get 'crop_1.0.0.tar.gz' in farm root directory.
+
+
+2 Introduction Of Files And Directory
+
+   [root@localhost farm_1.0.0]# tree
+   .
+   |-- crop_1.0.0.tar.gz      //publishing media of crop
+   |-- CMakeLists.txt         //cmake setting file
+   |-- README
+   |-- bin                    //scripts and things of crop
+   |   |-- crop_README
+   |   |-- crop_install.sh
+   |   |-- dfc
+   |   |-- farm2crop.sh
+   |   |-- lp.sh
+   |   `-- seelog.sh
+   |-- build                  //compiling and publishing script
+   |   `-- build.sh
+   |-- conf                   //config file
+   |   `-- dfc.conf
+   |-- include                //header files
+   |   |-- main.h
+   |   |-- memwatch.h
+   |   |-- moduleComm.h
+   |   |-- moduleErr.h
+   |   |-- moduleLg.h
+   |   |-- moduleLog.h
+   |   |-- moduleMem.h
+   |   |-- moduleTools.h
+   |   `-- userapp.h
+   |-- lib                    //.a and .so
+   |   `-- libdfc.a
+   `-- src                    //source files
+       |-- CMakeLists.txt
+       `-- userapp.c

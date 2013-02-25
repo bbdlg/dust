@@ -22,6 +22,7 @@ Learn DFC In Three Chapters...
    |-- moduleMem                    //submodule -- memory leak check
    |-- moduleTools                  //submodule -- tools
    |-- script                       //contains useful script
+   |-- unity                        //test assistant tool for TDD
    `-- platform                     
        |-- dfc.conf                 //globally-unique config file
        |-- main.c                   //dust platform main module
@@ -106,6 +107,7 @@ Learn DFC In Three Chapters...
    |-- moduleMem                    //子模块－－内存泄漏查找
    |-- moduleTools                  //子模块－－常用工具库
    |-- script                       //包含各种有用的脚本
+   |-- unity                        //测试驱动开发的测试辅助工具
    `-- platform                     
        |-- dfc.conf                 //DFC平台唯一的配置文件
        |-- main.c                   //dust平台总模块－－源文件
