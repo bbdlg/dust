@@ -1,0 +1,10 @@
+
+DFC(Dust, Farm, and Crop)
+=========================
+version:    1.0.0
+Time:       2012-11-27 16:34:22
+Author:     bbdlg
+Email:      shiluo.110@163.com
+
+Include commModule, logModule, lgModule, errModule, toolsModule, and platform. See MANIFEST.
+

@@ -1,64 +1,84 @@
 DFC
 =============
-.gitignore
-COPYING
-FAQ
-HISTORY
-MANIFEST
-NEWS
-README
-build/Makefile.am
-build/configure.in
-commModule/commModule.c
-commModule/commModule.conf
-commModule/commModule.h
-commModule/makefile
-commModule/testCommModule/makefile
-commModule/testCommModule/start_test.sh
-commModule/testCommModule/test_commModule.c
-errModule/errModule.h
-errModule/testErrModule/makefile
-errModule/testErrModule/start_test.sh
-errModule/testErrModule/test_errModule.c
-lgModule/lgModule.c
-lgModule/lgModule.h
-lgModule/lp.sh
-lgModule/makefile
-lgModule/testLgModule/makefile
-lgModule/testLgModule/start_test.sh
-lgModule/testLgModule/test_lgModule.c
-logModule/logModule.c
-logModule/logModule.conf
-logModule/logModule.h
-logModule/makefile
-logModule/seelog.sh
-logModule/testLogModule/makefile
-logModule/testLogModule/start_test.sh
-logModule/testLogModule/test_logModule.c
-memModule/makefile
-memModule/memModule.c
-memModule/memModule.h
-memModule/memwatch.c
-memModule/memwatch.h
-memModule/testMemModule/makefile
-memModule/testMemModule/start_test.sh
-memModule/testMemModule/test_memModule.c
-platform/crop_README
-platform/crop_install.sh
-platform/dust2farm.sh
-platform/farm2crop.sh
-platform/farm_Makefile.am
-platform/farm_README
-platform/farm_configure.in
-platform/farm_dust.conf
-platform/farm_makefile
-platform/farm_userapp.c
-platform/farm_userapp.h
-platform/main.c
-platform/main.h
-script/generate_manifest.sh
-toolsModule/testToolsModule/makefile
-toolsModule/testToolsModule/start_test.sh
-toolsModule/testToolsModule/test_toolsModule.c
-toolsModule/toolsModule.c
-toolsModule/toolsModule.h
+.
+|-- CMakeLists.txt
+|-- COPYING
+|-- FAQ
+|-- HISTORY
+|-- MANIFEST
+|-- NEWS
+|-- README
+|-- build
+|   `-- build.sh
+|-- moduleComm
+|   |-- makefile
+|   |-- moduleComm.c
+|   |-- moduleComm.conf
+|   |-- moduleComm.h
+|   `-- testModuleComm
+|       |-- makefile
+|       |-- start_test.sh
+|       `-- test_commModule.c
+|-- moduleErr
+|   |-- moduleErr.h
+|   `-- testErrModule
+|       |-- makefile
+|       |-- start_test.sh
+|       `-- test_errModule.c
+|-- moduleLg
+|   |-- lp.sh
+|   |-- makefile
+|   |-- moduleLg.c
+|   |-- moduleLg.h
+|   `-- testModuleLg
+|       |-- makefile
+|       |-- start_test.sh
+|       `-- test_lgModule.c
+|-- moduleLog
+|   |-- makefile
+|   |-- moduleLog.c
+|   |-- moduleLog.conf
+|   |-- moduleLog.h
+|   |-- seelog.sh
+|   `-- testModuleLog
+|       |-- makefile
+|       |-- start_test.sh
+|       `-- test_logModule.c
+|-- moduleMem
+|   |-- makefile
+|   |-- memwatch.c
+|   |-- memwatch.h
+|   |-- moduleMem.c
+|   |-- moduleMem.h
+|   `-- testModuleMem
+|       |-- makefile
+|       |-- start_test.sh
+|       `-- test_memModule.c
+|-- moduleNew
+|-- moduleTools
+|   |-- moduleTools.c
+|   |-- moduleTools.h
+|   `-- testModuleTools
+|       |-- makefile
+|       |-- start_test.sh
+|       `-- test_toolsModule.c
+|-- platform
+|   |-- CMakeLists.txt
+|   |-- crop_README
+|   |-- crop_install.sh
+|   |-- dfc.conf
+|   |-- dust2farm.sh
+|   |-- farm2crop.sh
+|   |-- farm_CMakeLists.txt
+|   |-- farm_README
+|   |-- farm_build.sh
+|   |-- farm_src_CMakeLists.txt
+|   |-- main.c
+|   |-- main.h
+|   |-- userapp.c
+|   `-- userapp.h
+`-- script
+    |-- generate_manifest.sh
+    `-- get_full_path.sh
+
+16 directories, 63 files
