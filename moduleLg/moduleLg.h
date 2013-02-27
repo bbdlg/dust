@@ -20,25 +20,26 @@
 #ifndef _LGMODULE_H_
 #define _LGMODULE_H_
 /****************************************************************************
- * name:     lg模块
+ * name:     LG module
  * version:  v1.0.0
  * time:     2012-11-26 20:40:54
  * author:   bbdlg
  * blog:     http://my.oschina.net/bbdlg
  * 
- * 功能：
- *    通过TCP或UDP接收来自lp模块的“查岗”，可通过自定义命令处理函数完成展示当前
- *    程序运行状态、改变程序运行模式等功能。
+ * function:
+ *    User can get program inside status or change program running mode via LP
+ *    module.
  *    
- * 使用方法：
- *    1、lg和lp间商定自定义命令，如 show our_love_memory；
- *    2、通过调用addCmdFunction，注册show命令，及相应的处理函数 
+ * Use-method:
+ *    1. Set a user-defined order like: show our_love_memory;
+ *    2. Register 'show' order and corresponding function via calling addCmdFunction:
  *          addCmdFunction(&procCmd_show, "show");
- *    3、在procCmd_show函数中完成对our_love_memory的处理：
+ *    3. Finish procession of 'our_love_memory' in procCmd_show():
  *          CmdFunction procCmd_show(int argc, char* argv[]) {
  *             term("we are both born in %d~", 1986);
  *          }
- *    4、启动lp.sh或用nc命令，发送一句"show our_love_memory"，lg就会应答一句：
+ *    4. Run lp.sh or use 'nc' order, send a string "show our_love_memory", LG module
+ *       will respond with:
  *          we are both born in 1986~
 *****************************************************************************/
 

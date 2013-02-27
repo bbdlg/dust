@@ -20,39 +20,41 @@
 #ifndef _ERRMODULE_H_
 #define _ERRMODULE_H_
 /****************************************************************************
- * name:     错误管理模块
+ * name:     error manage module
  * version:  v1.0.0
  * time:     2012-11-26 20:47:08
  * author:   bbdlg
  * blog:     http://my.oschina.net/bbdlg
  * 
- * 功能：
- *    提供了一个公共接口，用以根据模块名及错误代码获取模块内部定义的错误信息
- *    提供检测非法错误代码功能。
+ * function:
+ *    Provide a public interface to get module's inside error info via module 
+ *    name and error code.
+ *    Provide function of detecting illegal error code.
  *
- * 使用方法：
- *    1、在其他模块头文件中包含本文件；
- *    2、需在其他模块头文件中定义<模块内部错误代码>： 
+ * Use-method:
+ *    1. Include this file.
+ *    2. In other module header file define <module's inside error code>:
  *       enum modulenameErrNo { 
  *          EA = 0, 
  *          EB, 
  *          EC, 
  *          //..., 
  *          modulenameMAXERRNO };
- *    3、需在其他模块源文件中定义<模块内部错误信息>： 
+ *    3. In other module source file define <module's inside error info>:
  *       const char* modulenameErrInfo[modulenameMAXERRNO] = { 
  *          "error a", 
  *          "error b", 
  *          "error c", 
  *          //... };
- *    3、使用 moduleErrInfo(modulename, ErrNo) 来获得相应的错误信息，
- *    其中ErrNo为modulenameErrNo中定义的错误代码。
+ *    4. Use moduleErrInfo(modulename, ErrNo) to get corresponding error info,
+ *       among ErrNo is the error code defined in modulenameErrNo.
  *
- * 示例：
- *    假设模块名称为log，在模块内部定义了如下的错误代码及错误信息：
+ * E.g.
+ *    Assuming module name is 'log', define the following error code and error
+ *    info inside module:
  *       enum logErrNo { EA=0, EB, EC, logMAXERRNO };
  *       const char* logErrInfo[] = {"error a", "error b", "error c" };
- *    我们可以通过如下语句获得错误代码为‘EB’的错误信息‘error b’：
+ *    We can get the error info 'error b' of error code 'EB':
  *       moduleErrInfo(log, EB);
  *
 *****************************************************************************/

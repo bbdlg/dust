@@ -20,25 +20,26 @@
 #ifndef _LOGMODULE_H_
 #define _LOGMODULE_H_
 /****************************************************************************
- * name:     日志记录模块
+ * name:     log record module
  * version:  v1.0.0
  * time:     2012-11-26 16:04:37
  * author:   bbdlg
  * blog:     http://my.oschina.net/bbdlg
  * 
- * 功能：
- *    提供四个级别的定义（DEBUG、INFO、WARNING、ERROR）；
- *    在给定路径（root_log_path）下记录日志；
- *    日志格式为 root_log_path/yyyymmdd/hhmmssuuuuuu.log；
- *    可按时间记录或日志文件大小切换（时间及大小可配）；
- *    日志记录路径、文件切换时间、文件切换大小三个参数可通过调用 initLog() 
- *    或在当前目录下的 logModule.conf 中配置。
- * 使用方法：
- *    1、通过调用initLog()或在当前目录下的 logModule.conf 中配置好
- *       日志记录路径、文件切换时间、文件切换大小三个参数，
- *       或直接使用默认参数 "/log", 60s, 1024kb；
- *    2、调用log宏写日志。log的用法如：
+ * function:
+ *    Provide four level: DEBUG, INFO, WARNING, ERROR.
+ *    Record log in a given path: root_log_path.
+ *    Log format is root_log_path/yyyymmdd/hhmmssuuuuuu.log.
+ *    Change log file by time or file size, time and size can set in config file.
+ *    Log path, time and size of file switch etc. three parameters can be setted 
+ *    via calling initLog() or setting in logModule.conf.
+ *
+ * Use-method:
+ *    1. Set log record path, time of file switch, size of file switch in logModule.conf
+ *       or calling initLog(). Or use default parameter "/log", 60s, 1024kb.
+ *    2. Call 'log' macro to write log like:
  *          log(DEBUG, "%d-%s", 123, "this is a test message~");
+ *
 *****************************************************************************/
 #include <unistd.h>
 #include <stdio.h>

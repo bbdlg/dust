@@ -20,15 +20,16 @@
 #ifndef _TOOL_H_
 #define _TOOL_H_
 /****************************************************************************
- * name:     工具模块
+ * name:     tools module
  * version:  v1.0
  * time:     2012-9-26 16:04:37
  * author:   bbdlg
  * blog:     http://my.oschina.net/bbdlg
  * 
- * 功能：
- *    提供了屏蔽/恢复标准输出的两个宏；
- *    提供了从配置文件中读取值的函数；
+ * function:
+ *    Provide two macros of mask/unmask stand output.
+ *    Provide function getting value of key from config file.
+ *
 *****************************************************************************/
 #include <stdlib.h>
 #include <stdio.h>

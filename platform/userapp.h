@@ -20,15 +20,15 @@
 #ifndef _USERAPP_H_
 #define _USERAPP_H_
 /****************************************************************************
- * name:     demo头文件
+ * name:     demo header file
  * version:  v1.0.0
  * time:     2012-11-26 21:40:54
  * author:   bbdlg
  * blog:     http://my.oschina.net/bbdlg
  * 
- * 功能：
- *    本头文件为用户应用程序需唯一包含的平台头文件。
- *    用户必须实现main.h中的全局变量及函数。
+ * function:
+ *    This file is the only platform header file for user application.
+ *    User must achieve global variables and functions in main.h.
  *    
 *****************************************************************************/
 #include "main.h"
