@@ -31,7 +31,20 @@ void procLpMsg(const char* logicName, const int fd, const char* recvbuf, const i
 
 void showVersion(void)
 {
+#ifdef WIN32
+   char* ver = "Unknown Compiler Version";
+   if(1700 <  _MSC_VER) ver = "The compiler is too new, so i don't know";
+   if(1700 == _MSC_VER) ver = "Visual Studio 2011";
+   if(1600 == _MSC_VER) ver = "Visual Studio 2010";
+   if(1500 == _MSC_VER) ver = "Visual Studio 2008";
+   if(1400 == _MSC_VER) ver = "Visual Studio 2005";
+   if(1310 == _MSC_VER) ver = "Visual Studio 2003";
+   if(1300 == _MSC_VER) ver = "Visual Studio 2002";
+   if(1300 >  _MSC_VER) ver = "The compiler is too old, so i don't know";
+   printf("Compiler: %s\n", ver);
+#else
    printf("gcc: %s\n", __VERSION__);
+#endif
    printf("module: %s, \tversion: %s, \tcompile: %s %s\n", "app",   moduleVersion(app),  moduleCompileDate(app),    moduleCompileTime(app) );
    printf("module: %s, \tversion: %s, \tcompile: %s %s\n", "comm",  moduleVersion(comm), moduleCompileDate(comm),   moduleCompileTime(comm));
    printf("module: %s, \tversion: %s, \tcompile: %s %s\n", "log",   moduleVersion(log),  moduleCompileDate(log),    moduleCompileTime(log));
@@ -43,7 +56,11 @@ void handlerSigInt(int sig)
 {
    printf("recv SIGINT <%d>, you may press ctrl+C.\n", sig);
    commFreeAllFds();
+#ifdef WIN32
+   Sleep(1000);
+#else
    sleep(1);
+#endif
    exit(1);
 }
 
@@ -51,12 +68,22 @@ void handlerSigSegv(int sig)
 {
    printf("recv SIGSEGV <%d>, segment fault.\n", sig);
    commFreeAllFds();
+#ifdef WIN32
+   Sleep(1000);
+#else
    sleep(1);
+#endif
    exit(1);
 }
 
 int main(int argc, char** argv)
 {
+   int ret,i;
+   char tmp[256] = {0};
+   struct timeval curTimeval;
+   const char* subdir[] = {"", "bin", "conf", "log", "data"};
+   char mkdirCmd[256] = {0};
+
    //setup signal process handler
    signal(SIGINT,  handlerSigInt);
    signal(SIGSEGV, handlerSigSegv);
@@ -68,9 +95,7 @@ int main(int argc, char** argv)
    }
 
    //check $DFCHOME
-   int ret,i;
-   char tmp[256] = {0};
-   struct timeval curTimeval;
+   memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
    homePath = getenv("DFCHOME");
    if(NULL == homePath) {
       ERRORTIP("$DFCHOME is null, try export...");
@@ -98,13 +123,12 @@ int main(int argc, char** argv)
       log(LOG_ERROR, "$DFCHOME is too long");
       exit(1);
    }
-   const char* subdir[] = {"", "bin", "conf", "log", "data"};
    for(i=0; i<sizeof(subdir)/sizeof(subdir[0]); i++) {
       memset(tmp, 0, sizeof(tmp)/sizeof(tmp[0]));
       sprintf(tmp, "%s/%s", homePath, subdir[i]);
-      if(access(tmp, F_OK)) {
+      if(access(tmp, 0)) {
          log(LOG_WARNING, "%s does not exist, now create it...", tmp);
-         char mkdirCmd[256] = {0};
+         memset(mkdirCmd, 0, sizeof(mkdirCmd)/sizeof(mkdirCmd[0]));
          sprintf(mkdirCmd, "mkdir %s", tmp);
          system(mkdirCmd);
       }

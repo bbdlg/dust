@@ -39,12 +39,12 @@ PoolCmdFunction poolCmdFunction[MAX_CMD_FUNCTION] = {{NULL, NULL}};
 
 int initLgModule(const char* welcomeInfo)
 {
+   int i=0;
    if(NULL == welcomeInfo) {
       return LG_NO_WELCOMEINFO;
    }
    lgWelcomeInfo = welcomeInfo;
 
-   int i=0;
    for(i=0; i<sizeof(poolCmdFunction)/sizeof(poolCmdFunction[0]); i++) {
       poolCmdFunction[i].func = NULL;
       poolCmdFunction[i].cmd  = NULL;
@@ -90,14 +90,16 @@ int welcomeLp(char* sendbuf, int* sendlen)
 
 int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sendlen)
 {
-   if((NULL == recvbuf) || (0 >= recvlen)) {
-      return LG_INVALID_PARA;
-   }
-   
+   int i=0;   
    char* argv[MAX_SUM_CMD] = {0};
    int argc = 0;
    char* pSpace = NULL;
    char* lastpSpace = (char*)recvbuf;
+
+   if((NULL == recvbuf) || (0 >= recvlen)) {
+      return LG_INVALID_PARA;
+   }
+
    while((pSpace = strstr(lastpSpace, " "))) {
       if((pSpace - lastpSpace) > recvlen) {
          break;
@@ -118,7 +120,6 @@ int procLgModule(const char* recvbuf, const int recvlen, char* sendbuf, int* sen
    }
    argc++;
 
-   int i=0;
    for(i=0; i<sizeof(poolCmdFunction)/sizeof(poolCmdFunction[0]); i++) {
       if(NULL == poolCmdFunction[i].cmd) {
          continue;
@@ -169,13 +170,16 @@ void lgCmdFuncHelp(int argc, char* argv[])
    return;
 }
 
+#ifndef WIN32
 void lgCmdFuncUnix(int argc, char* argv[])
 {
+   char cmd[200] = {0};
+   int i=0;
+   char recv[1024] = {0};
+   int size = sizeof(recv)/sizeof(recv[0]);
    if(1 == argc) {
       term("Usage: unix [shell command like 'ls']");
    }
-   char cmd[200] = {0};
-   int i=0;
    for(i=1; i<argc; i++) {
       if((strlen(cmd)+strlen(argv[i])) > sizeof(cmd)/sizeof(cmd[0])) {
          term("too long unix cmd");
@@ -184,14 +188,13 @@ void lgCmdFuncUnix(int argc, char* argv[])
       sprintf(cmd+strlen(cmd), "%s ", argv[i]);
    }
       
-   char recv[1024] = {0};
-   int size = sizeof(recv)/sizeof(recv[0]);
    getResultFromSystemCall(cmd, recv, &size);
    if(size > 0) {
       term("%s", recv);
    }
    return;
 }
+#endif
 
 void lgCmdFuncWelcome(int argc, char* argv[])
 {
@@ -207,7 +210,20 @@ void lgCmdFuncAbout(int argc, char* argv[])
 
 void lgCmdFuncVersion(int argc, char* argv[])
 {
+#ifdef WIN32
+   char* ver = "Unknown Compiler Version";
+   if(1700 <  _MSC_VER) ver = "The compiler is too new, so i don't know";
+   if(1700 == _MSC_VER) ver = "Visual Studio 2011";
+   if(1600 == _MSC_VER) ver = "Visual Studio 2010";
+   if(1500 == _MSC_VER) ver = "Visual Studio 2008";
+   if(1400 == _MSC_VER) ver = "Visual Studio 2005";
+   if(1310 == _MSC_VER) ver = "Visual Studio 2003";
+   if(1300 == _MSC_VER) ver = "Visual Studio 2002";
+   if(1300 >  _MSC_VER) ver = "The compiler is too old, so i don't know";
+   printf("Compiler: %s\n", ver);
+#else
    term("gcc: %s\n", __VERSION__);
+#endif
    term("module: %s, \tversion: %s, \tcompile: %s %s\n", "app",   moduleVersion(app),  moduleCompileDate(app),    moduleCompileTime(app) );
    term("module: %s, \tversion: %s, \tcompile: %s %s\n", "comm",  moduleVersion(comm), moduleCompileDate(comm),   moduleCompileTime(comm));
    term("module: %s, \tversion: %s, \tcompile: %s %s\n", "log",   moduleVersion(log),  moduleCompileDate(log),    moduleCompileTime(log));
@@ -217,7 +233,9 @@ void lgCmdFuncVersion(int argc, char* argv[])
 int addDefaultCmdFunction(void)
 {
    addCmdFunction(&lgCmdFuncHelp,      "help");
+#ifndef WIN32
    addCmdFunction(&lgCmdFuncUnix,      "unix");
+#endif
    addCmdFunction(&lgCmdFuncWelcome,   "welcome");
    addCmdFunction(&lgCmdFuncAbout,     "about");
    addCmdFunction(&lgCmdFuncVersion,   "version");

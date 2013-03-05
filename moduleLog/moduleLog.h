@@ -41,15 +41,21 @@
  *          log(DEBUG, "%d-%s", 123, "this is a test message~");
  *
 *****************************************************************************/
+#ifdef WIN32
+#include <windows.h>
+#include <io.h>
+#else
 #include <unistd.h>
+#include <sys/time.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <sys/time.h>
 #include <string.h>
 #include <signal.h>
-#include <sys/wait.h>
-#include <sys/types.h>
 #include <errno.h>
 #include "moduleTools.h"
 #ifdef LOG

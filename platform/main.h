@@ -31,15 +31,20 @@
  *    
 *****************************************************************************/
 
-#include <stdio.h>
+#ifdef WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
 #include <sys/time.h>
-#include <time.h>
+#endif
+
+#include <stdio.h>
+//#include <time.h>
+#include "moduleTools.h"
 #include "moduleErr.h"
 #include "moduleComm.h"
 #include "moduleLg.h"
 #include "moduleLog.h"
-#include "moduleTools.h"
 
 /* Application Version Information */
 extern const char* appVersion;

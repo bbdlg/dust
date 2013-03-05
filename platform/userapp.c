@@ -28,11 +28,12 @@ const char* appCompileTime = __TIME__;
 void procUdpMsg(const char* logicName, const int fd, const char* recvbuf, const int recvlen, void* from)
 {
    char sendbuf[1024] = {0};
-   sprintf(sendbuf, "haha, i recv <%d> bytes from u~", recvlen);
-   int sendlen = strlen(sendbuf);
+   int sendlen = 0, len = 0;
+   sprintf(sendbuf, "recv <%d> bytes from u.", recvlen);
+   sendlen = strlen(sendbuf);
 
    printf("recv: [%s]\n", recvbuf);
-   int len = sizeof(struct sockaddr);
+   len = sizeof(struct sockaddr);
    commSend(fd, sendbuf, &sendlen, from);
 }
 
@@ -73,7 +74,11 @@ void checkEvent(const struct timeval curTimeval)
       commSend(*pFd, data, &datalen, NULL);
       DEBUGINFO("send <%d> bytes~", datalen);
    }
+#ifdef WIN32
+   Sleep(2000);
+#else
    sleep(2);
+#endif
    
    return;
 }

@@ -33,13 +33,20 @@
  *    
 *****************************************************************************/
 
-#include <stdio.h>
-#include <errno.h>
+#ifdef WIN32
+#include <windows.h>
+#include <WinSock.h>
+#include <WinError.h>
+#else
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#endif
+
+#include <stdio.h>
+#include <errno.h>
 #include "moduleTools.h"
 #include "moduleLg.h"
 #ifdef LOG
@@ -115,7 +122,7 @@ enum TypeOfState {
  *             4              pointer of logicname1 link info struct
  *             4              sum of fd is MaxLink1
  *             4 * MaxLink1   
- *    MapN      ……            other map, same as Map1 
+ *    MapN      ...           other map, same as Map1 
  *       
  * */
 extern void* gLinkMap;
@@ -187,7 +194,7 @@ extern void lgCmdFuncTrace(int argc, char* argv[]);
 
 #define MAX_LEN_VALUE   100
 #define MAX_LEN_BUF     4096
-#define MsumOfMap                   gLinkMap
+#define MsumOfMap                   (char*)gLinkMap
 #define MbaseMap(sizeOfGLinkMap)    (MsumOfMap + sizeOfGLinkMap)
 #define MpLogicName(x)              MbaseMap(x)
 #define MtypeOfMap(x)               (MpLogicName(x) + sizeof(char*))

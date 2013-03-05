@@ -19,9 +19,13 @@
 
 #include "moduleTools.h"
 
+#ifdef WIN32
+#else
 int getResultFromSystemCall(const char* pCmd, char* pResult, int* size)
 {
-   int fd[2];
+   int bak_fd=0,new_fd=0;
+   int fd[2] = {0};
+
    if(pipe(fd))   {
       printf("pipe error!\n");
       return -1;
@@ -30,8 +34,8 @@ int getResultFromSystemCall(const char* pCmd, char* pResult, int* size)
    fflush(stdout);
 
    //hide stdout
-   int bak_fd = dup(STDOUT_FILENO);
-   int new_fd = dup2(fd[1], STDOUT_FILENO);
+   bak_fd = dup(STDOUT_FILENO);
+   new_fd = dup2(fd[1], STDOUT_FILENO);
 
    //the output of `pCmd` writes into fd[1]
    system(pCmd);
@@ -61,10 +65,10 @@ int getResultFromSystemCall(const char* pCmd, char* pResult, int* size)
 
 int readValueFromConf(const char* filePath, const char* key, char* res, int* size)
 {
+   char cmd[100] = {0};
    if((NULL == filePath) || (0 == *size)) {
       return -1;
    }
-   char cmd[100] = {0};
    //sprintf(cmd, "cat %s 2>/dev/null | grep -m 1 -E \"^%s\" | cut -d= -f2 | sed 's/[[:space:]]*//g'", filePath, key); 
    sprintf(cmd, "cat %s | grep -m 1 -E \"^%s\" | cut -d= -f2 | sed 's/[[:space:]]*//g'", filePath, key); 
    memset(res, 0, *size);
@@ -78,6 +82,7 @@ int readValueFromConf(const char* filePath, const char* key, char* res, int* siz
       return ret;
    }
 }
+#endif
 
 //return how many times field appears, if 0 == times;
 //return TOOLS_CANNOT_FIND_VALUES, if can't find field in config file;
@@ -127,12 +132,16 @@ int getSection(const char* filePath, const int times, const char* field, char* s
 
 int getValueOfKey(const char* section, const char* key, char* res, int* size)
 {
+   char* pos = NULL;
+   int f_copy = 0;
+   int f_copy_space = 0;
+   char ctmp[MAX_LEN_ROW] = {0};
+   char *pStartCopy=NULL, *pStopCopy=NULL;
+
    if((NULL == section) || (NULL == key) || (NULL == size)) {
       return TOOLS_INVALID_PARA;
    }
 
-   char ctmp[MAX_LEN_ROW] = {0};
-   char *pStartCopy, *pStopCopy;
    sprintf(ctmp, "\n%s", key);
    pStartCopy = strstr(section, ctmp);
    if(NULL == pStartCopy) {
@@ -156,9 +165,9 @@ int getValueOfKey(const char* section, const char* key, char* res, int* size)
 #define start_copy(c)((c != '\t') && (c != '\n') && (c != ' ') && (c != '=') )
 #define stop_copy(c)(c == '\0')
 #define is_space(c) (('\t' == c) || (' ' == c) || ('\n' == c))
-   char* pos = ctmp + strlen(key);
-   int f_copy = 0;
-   int f_copy_space = 0;
+   pos = ctmp + strlen(key);
+   f_copy = 0;
+   f_copy_space = 0;
    *size = 0;
    while (1) {
       if(start_copy(*pos)) {
@@ -195,12 +204,13 @@ int getValueOfKey(const char* section, const char* key, char* res, int* size)
 int readValueFromConf_ext(const char* filePath, const int times, const char* field, const char* key, char* res, int* size)
 {
    char section[MAX_LEN_SECTION] = {0};
+   int ret = 0;
 
    if(0 == times) {
       return getSection(filePath, times, field, section);
    }
 
-   int ret = getSection(filePath, times, field, section);
+   ret = getSection(filePath, times, field, section);
    if(TOOLS_SUCCESS != ret) {
       return ret;
    }
@@ -208,17 +218,16 @@ int readValueFromConf_ext(const char* filePath, const int times, const char* fie
    return getValueOfKey(section, key, res, size);
 }
 
-void hexdump(const void* _data, size_t size, const char* info) 
+void hexdump(const void* _data, int size, const char* info) 
 {
+   int offset=0, i=0, n=0;
+   const char* data = (const char*)_data;
    if(info) {
       printf("%s\n", info); 
    }
-   size_t offset = 0;
-   int i=0;
-   const char* data = (const char*)_data;
    while (offset < size) {
       printf("%06x  ", offset);
-      size_t n = size - offset;
+      n = size - offset;
       if (n > 16) {
          n = 16;
       }
@@ -248,3 +257,23 @@ void hexdump(const void* _data, size_t size, const char* info)
    }
 }
 
+#ifdef WIN32
+int gettimeofday(struct timeval *tp, void *tzp)
+{
+   time_t clock;
+   struct tm tm;
+   SYSTEMTIME wtm;
+   GetLocalTime(&wtm);
+   tm.tm_year     = wtm.wYear - 1900;
+   tm.tm_mon     = wtm.wMonth - 1;
+   tm.tm_mday     = wtm.wDay;
+   tm.tm_hour     = wtm.wHour;
+   tm.tm_min     = wtm.wMinute;
+   tm.tm_sec     = wtm.wSecond;
+   tm. tm_isdst    = -1;
+   clock = mktime(&tm);
+   tp->tv_sec = clock;
+   tp->tv_usec = wtm.wMilliseconds * 1000;
+   return (0);
+}
+#endif

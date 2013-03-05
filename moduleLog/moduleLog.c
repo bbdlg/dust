@@ -56,7 +56,7 @@ const char* logErrInfo[logMAXERRNO] = {
 
 int logInit(const char* configFilePath)
 {
-   if((NULL == configFilePath) || access(configFilePath, F_OK)) {
+   if((NULL == configFilePath) || access(configFilePath, 0)) {
       printf("config file<%s> maybe not exists.\n", configFilePath);
       return LOG_FILE_NOT_EXISTS;
    }
@@ -66,6 +66,8 @@ int logInit(const char* configFilePath)
 
 int createLogFile(void)
 {
+   char cmd[256]={0};
+   char filePath[256]={0}, dir[20]={0}, file[20]={0};
    if(_fp_log) {
       fflush(_fp_log);
       fclose(_fp_log);
@@ -112,31 +114,57 @@ int createLogFile(void)
       }
    }
 
-   char cmd[100]={0};
+   memset(cmd, 0, sizeof(cmd)/sizeof(cmd[0]));
+   if(access(_rootPathStoreLog, 0)) {
+#ifdef WIN32
+      sprintf(cmd, "md %s", _rootPathStoreLog);
+#else
+      sprintf(cmd, "mkdir -p %s", _rootPathStoreLog);
+#endif
+      system(cmd);
+   }
+   if(access(_rootPathStoreLog, 0)) {  //check again to make sure mkdir success.
+      printf("mkdir <%s> failed! now exit ...\n", _rootPathStoreLog);
+      exit(1);
+   }
+
+   /* //have use access() instead of WEXITSTATUS()
    sprintf(cmd, "test -d %s", _rootPathStoreLog);
    pid_t status = system(cmd);
    if(WEXITSTATUS(status) == 1)  //_rootPathStoreLog is not a dir
    {
+      memset(cmd, 0, sizeof(cmd)/sizeof(cmd[0]));
       sprintf(cmd, "mkdir -p %s", _rootPathStoreLog);
       system(cmd);
    }
-
-   char filePath[256]={0}, dir[20]={0}, file[20]={0};
+   */
    generateDirNameAndFileName(dir, file);
 
-   sprintf(cmd, "test -d %s/%s", _rootPathStoreLog, dir);
-   status = system(cmd);
-   if(WEXITSTATUS(status) == 1)  // dir is not a dir
-   {
-      sprintf(cmd, "mkdir %s/%s", _rootPathStoreLog, dir);
+   memset(filePath, 0, sizeof(filePath));
+#ifdef WIN32
+   sprintf(filePath, "%s\\%s", _rootPathStoreLog, dir);
+#else
+   sprintf(filePath, "%s/%s", _rootPathStoreLog, dir);
+#endif
+   if(access(filePath, 0)) {
+#ifdef WIN32
+      sprintf(cmd, "md %s", filePath);
+#else
+      sprintf(cmd, "mkdir -p %s", filePath);
+#endif
       system(cmd);
    }
-
+   if(access(filePath, 0)) {  //check again to make sure mkdir success.
+      printf("mkdir <%s> failed! now exit ...\n", _rootPathStoreLog);
+      exit(1);
+   }
+   
    sprintf(filePath, "%s/%s/%s", _rootPathStoreLog, dir, file);
    _fp_log = fopen(filePath, "w+");
    if(NULL == _fp_log)
    {
       printf("fopen %s failed!\n", filePath);
+      exit(1);
    }
 
    return LOG_SUCCESS;
@@ -164,6 +192,7 @@ int initLog(char* rootPathStoreLog, int secondsSwitchLog, int kbSwitchLog)
 int _log(enum LogLevel level, char* function, char* file, int line,  char* msg)
 {
    struct timeval tv;
+   long fileLen;
    gettimeofday(&tv, NULL);
 
    //case not init _fp_log
@@ -172,7 +201,7 @@ int _log(enum LogLevel level, char* function, char* file, int line,  char* msg)
    }
 
    //switch by size
-   long fileLen=ftell(_fp_log);
+   fileLen = ftell(_fp_log);
    if(fileLen >= _kbSwitchLog * 1024) {
       printf("size of file is %ld, larger than %d, call createLogFile()\n", fileLen, _kbSwitchLog*1024);
       createLogFile();
