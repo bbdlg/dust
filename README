@@ -4,6 +4,7 @@ Learn DFC In Three Chapters...
 * Chapter One:    What Is DFC?
 * Chapter Two:    Getting Start
 * Chapter Three:  Introduction Of Modules
+* Chapter Four:   Compile On Windows Platform
 
 1 What Is DFC?
    DFC is a short for Dust, Farm, and Crop. It provides a develop flow for C/C++ project.  In a nutshell, Dust is source code of platform, Farm is a platform, Crop is a running environment.  First, Dust is a integration of modules, such as communication module, log module, error manage module, debug outside module, and so on. User can add a new module to insert into Dust.  It can generate a platform named Farm easily via executing a script in Dust.  Farm provides some simple interfaces for user to add its own business code. Farm use 'cmake' to generate executable files. This can let user avoid writing complex makefiles and pay their attention to kernel code.  It can pack all executable files, config files, tools scripts into a published media named crop_x.y.z.tar.gz.  This compression package can pass to maintenance personnel. Crop unpacked will be a complete running environment.
@@ -79,7 +80,16 @@ Learn DFC In Three Chapters...
 3 Introduction Of Modules
    Every introduction of modules will be found in the header file of module. Try "cat logModule/logModule.h" for example.
 
-
+4 Compile On Windows Platform 
+   You can also compile DFC on windows platform easily, it means that you can use DFC into your windows project.
+   Step:
+      a. Download and install cmake-2.8.10.2-win32-x86 and VS2008 (also you can chose any other version of Visual Studio or cmake)
+      b. Open cmake for win32, chose directory where is the source code, e.g. D:/dust
+         and directory where to build the binaries, e.g. D:/dust/build_win
+      c. Configure --specify the generator: Visual Studio 9 2008, Use default native compiler. 
+         If you didn't install VS2008, there will be a error tip.
+      d. Generate.
+      e. Enter D:/dust/build_win and you will find *.sln, which can be opened by VS2008.
 
 
 欢迎使用DFC
@@ -88,6 +98,7 @@ Learn DFC In Three Chapters...
 1、什么是DFC？
 2、开始使用
 3、模块介绍
+4、在windows平台上编译
 
 1  什么是DFC？
    DFC是Dust、Farm和Crop的缩写，为C/C++项目提供了一个开发流。概括地说，Dust是平台源码，Farm是开发平台，Crop是运行环境。首先，Dust是一个基础模块的集合，如通信模块、日志模块、错误管理模块、与外部通讯模块等，用户可以很方便的集成新的模块到Dust中。通过执行Dust中的脚本，可以很方便的生成一个名为Farm的开发平台。Farm提供了简单的接口让用户增加自己的业务代码，通过执行Farm中的脚本，可以生成可执行程序，并将可执行程序、配置文件、辅助工具等打包为发布介质Crop。解压后的Crop将是一个完整的运行环境。
@@ -163,4 +174,17 @@ Learn DFC In Three Chapters...
 
 3  模块介绍
    每个模块的介绍及使用均可以在模块的头文件里找到。你可以试一下"cat moduleLog/moduleLog.h"这个命令。
+
+4  在windows平台上编译
+   你可以在windows平台上非常容易的编译DFC，也就是说可以将DFC应用在你的windows项目中。
+   步骤：
+      a. 下载并安装 cmake-2.8.10.2-win32-x86 以及 VS2008 (当然你也可以选择其他版本)
+      b. 打开cmake，选择源文件目录，如 D:/dust
+         以及编译二进制文件的目录，如 D:/dust/build_win
+      c. Configure --指定生成器: Visual Studio 9 2008, 选择Use default native compiler. 
+         如果你没有安装VS2008，会看到一个错误提示。
+      d. Generate.
+      e. 进入 D:/dust/build_win 你可以看到*.sln, 该文件可以由VS2008打开。
+
+      
 
